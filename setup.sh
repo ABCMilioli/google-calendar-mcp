@@ -48,7 +48,7 @@ get_google_credentials() {
         echo -e "${amarelo}Digite o GOOGLE_CLIENT_ID${reset}"
         echo -e "${vermelho}Para cancelar a instalação digite: exit${reset}"
         echo ""
-        read -p "> " GOOGLE_CLIENT_ID
+        read -p "GOOGLE_CLIENT_ID: " GOOGLE_CLIENT_ID
         if [ "$GOOGLE_CLIENT_ID" = "exit" ]; then
             echo -e "${vermelho}Instalação cancelada pelo usuário${reset}"
             exit 1
@@ -60,7 +60,7 @@ get_google_credentials() {
         echo -e "${amarelo}Digite o GOOGLE_CLIENT_SECRET${reset}"
         echo -e "${vermelho}Para cancelar a instalação digite: exit${reset}"
         echo ""
-        read -p "> " GOOGLE_CLIENT_SECRET
+        read -p "GOOGLE_CLIENT_SECRET: " GOOGLE_CLIENT_SECRET
         if [ "$GOOGLE_CLIENT_SECRET" = "exit" ]; then
             echo -e "${vermelho}Instalação cancelada pelo usuário${reset}"
             exit 1
