@@ -209,11 +209,14 @@ rl.question('Código de autorização: ', async (code) => {
       console.log('Seu novo REFRESH TOKEN é:\n');
       console.log(tokens.refresh_token);
       console.log('\nSalve este token no seu .env como GOOGLE_REFRESH_TOKEN.');
+      process.exit(0);
     } else {
       console.warn('Nenhum refresh_token foi retornado. Use prompt: "consent" e access_type: "offline".');
+      process.exit(1);
     }
   } catch (error) {
     console.error('Erro ao trocar o código por tokens:\n', error.response?.data || error.message || error);
+    process.exit(1);
   }
 });
 EOF
@@ -227,8 +230,16 @@ get_refresh_token() {
     echo -e "${amarelo}Digite o refresh token obtido:${reset}"
     read -p "> " REFRESH_TOKEN
 
+    if [ -z "$REFRESH_TOKEN" ]; then
+        echo -e "${vermelho}Refresh token não pode estar vazio${reset}"
+        echo -e "${amarelo}Tente novamente...${reset}"
+        get_refresh_token
+        return
+    fi
+
     # Atualizar o arquivo .env com o refresh token
     sed -i "s/GOOGLE_REFRESH_TOKEN=.*/GOOGLE_REFRESH_TOKEN=$REFRESH_TOKEN/" .env
+    echo -e "${verde}Refresh token salvo com sucesso!${reset}"
 }
 
 ## Função para criar arquivo index.js
