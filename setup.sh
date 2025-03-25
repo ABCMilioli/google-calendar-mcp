@@ -61,6 +61,10 @@ update_system() {
 install_dependencies() {
     echo -e "${azul}Instalando dependências...${reset}"
     
+    # Instalar git e outras dependências básicas
+    echo -e "${azul}Instalando git e dependências básicas...${reset}"
+    apt install -y git build-essential python3
+    
     # Instalar Node.js
     echo -e "${azul}Instalando Node.js...${reset}"
     curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
@@ -70,21 +74,45 @@ install_dependencies() {
     echo -e "${azul}Instalando TypeScript...${reset}"
     npm install -g typescript
     
-    # Instalar npm
-    echo -e "${azul}Instalando npm...${reset}"
+    # Instalar npm e suas dependências
+    echo -e "${azul}Instalando npm e dependências...${reset}"
     apt install -y npm
+    npm install -g npm@latest
+    
+    # Instalar dependências adicionais do npm
+    echo -e "${azul}Instalando dependências adicionais do npm...${reset}"
+    npm install -g node-gyp
+    npm install -g node-http-proxy-agent
+    npm install -g node-https-proxy-agent
+    npm install -g node-mkdirp
+    npm install -g node-ms
+    npm install -g node-nopt
+    npm install -g node-normalize-package-data
+    npm install -g node-npm-bundled
+    npm install -g node-npm-normalize-package-bin
+    npm install -g node-npm-package-arg
+    npm install -g node-npmlog
+    npm install -g node-postcss-selector-parser
+    npm install -g node-read-package-json
+    npm install -g node-rimraf
+    npm install -g node-semver
+    npm install -g node-string-width
+    npm install -g node-strip-ansi
+    npm install -g node-tar
+    npm install -g node-validate-npm-package-name
+    npm install -g node-which
 }
 
 ## Função para clonar o repositório
 clone_repository() {
     echo -e "${azul}Clonando o repositório...${reset}"
     cd /opt
-    git clone https://github.com/v-3/google-calendar.git
+    git clone https://github.com/ABCMilioli/google-calendar-mcp.git
     if [ $? -ne 0 ]; then
         echo -e "${vermelho}Erro ao clonar o repositório${reset}"
         exit 1
     fi
-    cd google-calendar
+    cd google-calendar-mcp
 }
 
 ## Função para instalar dependências do projeto
