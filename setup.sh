@@ -129,14 +129,29 @@ install_dependencies() {
 
     # Passo 3 - Clonar repositório
     echo -e "${azul}Passo 3 - Clonando repositório...${reset}"
-    git clone https://github.com/v-3/google-calendar.git
+    if [ ! -d "/opt/google-calendar" ]; then
+        git clone https://github.com/v-3/google-calendar.git
+    else
+        echo -e "${amarelo}Diretório já existe, atualizando...${reset}"
+        cd google-calendar
+        git pull
+        cd ..
+    fi
 
     # Passo 4 - Acessar diretório do projeto
     echo -e "${azul}Passo 4 - Acessando diretório do projeto...${reset}"
     cd google-calendar
 
+    # Configurar permissões do diretório
+    echo -e "${azul}Configurando permissões do diretório...${reset}"
+    sudo chown -R 1000:1000 /opt/google-calendar
+    sudo chmod -R 755 /opt/google-calendar
+
     # Criar volume Docker para o MCP Calendar
     echo -e "${azul}Criando volume Docker para o MCP Calendar...${reset}"
+    if docker volume ls | grep -q "google-calendar-mcp"; then
+        docker volume rm google-calendar-mcp
+    fi
     docker volume create google-calendar-mcp
     
     # Ajustar permissões do diretório
