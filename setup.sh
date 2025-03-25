@@ -110,35 +110,65 @@ get_google_credentials() {
 
 ## Função para instalar dependências
 install_dependencies() {
-    echo -e "${azul}Atualizando pacotes...${reset}"
-    apt update
+    # Passo 0 - Identificar o OS
+    if [ -f /etc/debian_version ]; then
+        echo -e "${azul}Sistema Debian/Ubuntu detectado${reset}"
+        OS="debian"
+    else
+        echo -e "${vermelho}Sistema operacional não suportado${reset}"
+        exit 1
+    fi
 
-    echo -e "${azul}Acessando diretório /opt...${reset}"
+    # Passo 1 - Atualizar pacotes
+    echo -e "${azul}Passo 1 - Atualizando pacotes...${reset}"
+    sudo apt update
+
+    # Passo 2 - Acessar diretório /opt
+    echo -e "${azul}Passo 2 - Acessando diretório /opt...${reset}"
     cd /opt
 
-    echo -e "${azul}Clonando repositório...${reset}"
+    # Passo 3 - Clonar repositório
+    echo -e "${azul}Passo 3 - Clonando repositório...${reset}"
     git clone https://github.com/v-3/google-calendar.git
 
-    echo -e "${azul}Acessando diretório do projeto...${reset}"
+    # Passo 4 - Acessar diretório do projeto
+    echo -e "${azul}Passo 4 - Acessando diretório do projeto...${reset}"
     cd google-calendar
 
-    echo -e "${azul}Configurando Node.js...${reset}"
+    # Passo 5 - Configurar Node.js
+    echo -e "${azul}Passo 5 - Configurando Node.js...${reset}"
     curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
-    apt install -y nodejs
 
-    echo -e "${azul}Instalando TypeScript...${reset}"
-    npm install -g typescript
+    # Passo 6 - Instalar Node.js
+    echo -e "${azul}Passo 6 - Instalando Node.js...${reset}"
+    sudo apt install -y nodejs
+
+    # Passo 7 - Instalar TypeScript globalmente
+    echo -e "${azul}Passo 7 - Instalando TypeScript...${reset}"
+    sudo npm install -g typescript
+
+    # Passo 8 - Instalar npm
+    echo -e "${azul}Passo 8 - Instalando npm...${reset}"
     apt install npm
 
-    echo -e "${azul}Instalando dependências do projeto...${reset}"
+    # Passo 9 - Instalar dependências do MCP
+    echo -e "${azul}Passo 9 - Instalando dependências do MCP...${reset}"
     npm install @modelcontextprotocol/sdk googleapis google-auth-library zod
+
+    # Passo 10 - Instalar dependências de desenvolvimento
+    echo -e "${azul}Passo 10 - Instalando dependências de desenvolvimento...${reset}"
     npm install -D @types/node typescript
+
+    # Instalar dotenv (necessário para o .env)
+    echo -e "${azul}Instalando dotenv...${reset}"
     npm install dotenv
 
-    echo -e "${azul}Compilando o projeto...${reset}"
+    # Passo 11 - Compilar o projeto
+    echo -e "${azul}Passo 11 - Compilando o projeto...${reset}"
     npm run build
 
-    echo -e "${azul}Acessando diretório build...${reset}"
+    # Passo 12 - Acessar diretório build
+    echo -e "${azul}Passo 12 - Acessando diretório build...${reset}"
     cd build/
 }
 
@@ -318,11 +348,14 @@ const oauth2Client = new OAuth2Client({
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     redirectUri: process.env.GOOGLE_REDIRECT_URI,
 });
+
 // Set credentials from environment variables
 oauth2Client.setCredentials({
     refresh_token: process.env.GOOGLE_REFRESH_TOKEN,
 });
+
 const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
+
 // Validation schemas
 const schemas = {
     toolInputs: {
@@ -355,6 +388,7 @@ const schemas = {
         })
     }
 };
+
 // Tool definitions
 const TOOL_DEFINITIONS = [
     {
@@ -478,6 +512,7 @@ const TOOL_DEFINITIONS = [
         },
     },
 ];
+
 // Tool implementation handlers
 const toolHandlers = {
     async list_events(args) {
@@ -496,11 +531,11 @@ const toolHandlers = {
         }).join('\n\n');
         return {
             content: [{
-                    type: "text",
-                    text: events.length ?
-                        `Found ${events.length} events:\n\n${formattedEvents}` :
-                        "No events found in the specified time range."
-                }]
+                type: "text",
+                text: events.length ?
+                    `Found ${events.length} events:\n\n${formattedEvents}` :
+                    "No events found in the specified time range."
+            }]
         };
     },
     async create_event(args) {
@@ -523,9 +558,9 @@ const toolHandlers = {
         });
         return {
             content: [{
-                    type: "text",
-                    text: `Event created successfully!\nID: ${event.data.id}\nLink: ${event.data.htmlLink}`
-                }]
+                type: "text",
+                text: `Event created successfully!\nID: ${event.data.id}\nLink: ${event.data.htmlLink}`
+            }]
         };
     },
     async update_event(args) {
@@ -559,9 +594,9 @@ const toolHandlers = {
         });
         return {
             content: [{
-                    type: "text",
-                    text: `Event ${eventId} updated successfully!`
-                }]
+                type: "text",
+                text: `Event ${eventId} updated successfully!`
+            }]
         };
     },
     async delete_event(args) {
@@ -572,9 +607,9 @@ const toolHandlers = {
         });
         return {
             content: [{
-                    type: "text",
-                    text: `Event ${eventId} deleted successfully!`
-                }]
+                type: "text",
+                text: `Event ${eventId} deleted successfully!`
+            }]
         };
     },
     async find_free_time(args) {
@@ -592,6 +627,7 @@ const toolHandlers = {
         let currentTime = new Date(timeMin);
         const endTime = new Date(timeMax);
         const durationMs = duration * 60000; // Convert minutes to milliseconds
+
         // Find free time slots
         for (const event of events) {
             const eventStart = new Date(event.start?.dateTime || event.start?.date || '');
@@ -604,6 +640,7 @@ const toolHandlers = {
             }
             currentTime = new Date(event.end?.dateTime || event.end?.date || '');
         }
+
         // Check for free time after the last event
         if (endTime.getTime() - currentTime.getTime() >= durationMs) {
             freeTimes.push({
@@ -611,17 +648,19 @@ const toolHandlers = {
                 end: endTime.toISOString(),
             });
         }
+
         const formattedTimes = freeTimes.map(slot => `• ${new Date(slot.start).toLocaleString()} - ${new Date(slot.end).toLocaleString()}`).join('\n');
         return {
             content: [{
-                    type: "text",
-                    text: freeTimes.length ?
-                        `Encontrado ${freeTimes.length} nesse periodo:\n\n${formattedTimes}` :
-                        `Nao encontrou tempo disponivel ${duration}.`
-                }]
+                type: "text",
+                text: freeTimes.length ?
+                    `Encontrado ${freeTimes.length} nesse periodo:\n\n${formattedTimes}` :
+                    `Nao encontrou tempo disponivel ${duration}.`
+            }]
         };
     },
 };
+
 // Initialize MCP server
 const server = new Server({
     name: "google-calendar-server",
@@ -631,16 +670,13 @@ const server = new Server({
         tools: {},
     },
 });
+
 // Register tool handlers
 server.setRequestHandler(ListToolsRequestSchema, async () => {
     console.error("Tools requested by client");
     return { tools: TOOL_DEFINITIONS };
 });
-server.setRequestHandler(ListToolsRequestSchema, async () => {
-    console.error("Tools requested by client");
-    console.error("Returning tools:", JSON.stringify(TOOL_DEFINITIONS, null, 2));
-    return { tools: TOOL_DEFINITIONS };
-});
+
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { name, arguments: args } = request.params;
     try {
@@ -655,6 +691,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         throw error;
     }
 });
+
 // Start the server
 async function main() {
     try {
@@ -670,50 +707,64 @@ async function main() {
             console.error(`Missing required environment variables: ${missingVars.join(', ')}`);
             process.exit(1);
         }
+
         console.error("Starting server with env vars:", {
             clientId: process.env.GOOGLE_CLIENT_ID?.substring(0, 5) + '...',
             clientSecret: process.env.GOOGLE_CLIENT_SECRET?.substring(0, 5) + '...',
             redirectUri: process.env.GOOGLE_REDIRECT_URI,
             hasRefreshToken: !!process.env.GOOGLE_REFRESH_TOKEN
         });
+
         const transport = new StdioServerTransport();
         console.error("Created transport");
         await server.connect(transport);
         console.error("Connected to transport");
         console.error("Google Calendar MCP Server running on stdio");
+
+        // Manter o processo rodando
+        process.stdin.resume();
+        process.on('SIGINT', () => {
+            console.error("Received SIGINT signal");
+            process.exit(0);
+        });
+        process.on('SIGTERM', () => {
+            console.error("Received SIGTERM signal");
+            process.exit(0);
+        });
     }
     catch (error) {
         console.error("Startup error:", error);
         process.exit(1);
     }
 }
+
 const args = process.argv.slice(2);
 
 if (args.length > 0) {
-  // Execução direta via CLI com função e argumentos
-  const funcao = args[0];
-  const input = args[1] ? JSON.parse(args[1]) : {};
+    // Execução direta via CLI com função e argumentos
+    const funcao = args[0];
+    const input = args[1] ? JSON.parse(args[1]) : {};
 
-  if (toolHandlers[funcao]) {
-    toolHandlers[funcao](input)
-      .then((res) => {
-        console.log(JSON.stringify(res, null, 2));
-        process.exit(0);
-      })
-      .catch((err) => {
-        console.error(`Erro ao executar ${funcao}:`, err);
+    if (toolHandlers[funcao]) {
+        toolHandlers[funcao](input)
+            .then((res) => {
+                console.log(JSON.stringify(res, null, 2));
+                process.exit(0);
+            })
+            .catch((err) => {
+                console.error(`Erro ao executar ${funcao}:`, err);
+                process.exit(1);
+            });
+    } else {
+        console.error(`❌ Função desconhecida: ${funcao}`);
         process.exit(1);
-      });
-  } else {
-    console.error(`❌ Função desconhecida: ${funcao}`);
-    process.exit(1);
-  }
+    }
 } else {
-  // Modo MCP servidor via stdio
-  main().catch((error) => {
-    console.error("Fatal error:", error);
-    process.exit(1);
-  });
+    // Modo MCP servidor via stdio
+    main().catch((error) => {
+        console.error("Fatal error:", error);
+        process.exit(1);
+    });
 }
 EOF
 }
