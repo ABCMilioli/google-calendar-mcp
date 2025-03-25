@@ -41,30 +41,34 @@ detect_os() {
 
 ## Função para coletar informações do Google Calendar
 get_google_credentials() {
+    exec < /dev/tty
+    
+    # GOOGLE_CLIENT_ID
     echo -e "${azul}Configuração do Google Calendar${reset}"
     echo ""
     echo -e "\e[97mPasso${amarelo} 1/2${reset}"
     echo -e "${amarelo}Digite o GOOGLE_CLIENT_ID${reset}"
     echo -e "${vermelho}Para cancelar a instalação digite: exit${reset}"
     echo ""
-    read -p "GOOGLE_CLIENT_ID: " GOOGLE_CLIENT_ID
+    read -p "> " GOOGLE_CLIENT_ID
     if [ "$GOOGLE_CLIENT_ID" = "exit" ]; then
         echo -e "${vermelho}Instalação cancelada pelo usuário${reset}"
         exit 1
     fi
-
+    
+    # GOOGLE_CLIENT_SECRET
     echo -e "${azul}Configuração do Google Calendar${reset}"
     echo ""
     echo -e "\e[97mPasso${amarelo} 2/2${reset}"
     echo -e "${amarelo}Digite o GOOGLE_CLIENT_SECRET${reset}"
     echo -e "${vermelho}Para cancelar a instalação digite: exit${reset}"
     echo ""
-    read -p "GOOGLE_CLIENT_SECRET: " GOOGLE_CLIENT_SECRET
+    read -p "> " GOOGLE_CLIENT_SECRET
     if [ "$GOOGLE_CLIENT_SECRET" = "exit" ]; then
         echo -e "${vermelho}Instalação cancelada pelo usuário${reset}"
         exit 1
     fi
-
+    
     # Confirmação
     echo -e "${azul}Confirme as informações:${reset}"
     echo ""
@@ -74,9 +78,10 @@ get_google_credentials() {
     echo -e "${vermelho}Para cancelar a instalação digite: exit${reset}"
     echo ""
     read -p "As informações estão corretas? (Y/N/exit): " confirmacao
-
+    
     case $confirmacao in
         [Yy]* )
+            exec <&-  # Fecha o /dev/tty
             return 0
             ;;
         [Nn]* )
