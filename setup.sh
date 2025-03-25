@@ -81,6 +81,8 @@ get_google_credentials() {
                 return 0
                 ;;
             [Nn]* )
+                echo -e "${amarelo}Reiniciando coleta de informações...${reset}"
+                sleep 2
                 continue
                 ;;
             "exit" )
@@ -89,7 +91,8 @@ get_google_credentials() {
                 ;;
             * )
                 echo -e "${vermelho}Opção inválida${reset}"
-                sleep 2
+                echo -e "${amarelo}Pressione ENTER para continuar...${reset}"
+                read
                 continue
                 ;;
         esac
