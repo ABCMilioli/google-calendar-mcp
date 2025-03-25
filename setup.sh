@@ -224,22 +224,67 @@ EOF
 
 ## Função para obter refresh token
 get_refresh_token() {
-    echo -e "${azul}Executando script de obtenção do refresh token...${reset}"
-    node getRefreshToken.js
-
-    echo -e "${amarelo}Digite o refresh token obtido:${reset}"
+    exec < /dev/tty
+    
+    echo -e "${azul}Configuração do Refresh Token${reset}"
+    echo ""
+    echo -e "${amarelo}Digite o refresh token obtido${reset}"
+    echo -e "${vermelho}Para cancelar a instalação digite: exit${reset}"
+    echo ""
     read -p "> " REFRESH_TOKEN
-
+    
+    if [ "$REFRESH_TOKEN" = "exit" ]; then
+        echo -e "${vermelho}Instalação cancelada pelo usuário${reset}"
+        exit 1
+    fi
+    
     if [ -z "$REFRESH_TOKEN" ]; then
         echo -e "${vermelho}Refresh token não pode estar vazio${reset}"
         echo -e "${amarelo}Tente novamente...${reset}"
+        sleep 2
         get_refresh_token
         return
     fi
-
-    # Atualizar o arquivo .env com o refresh token
-    sed -i "s/GOOGLE_REFRESH_TOKEN=.*/GOOGLE_REFRESH_TOKEN=$REFRESH_TOKEN/" .env
-    echo -e "${verde}Refresh token salvo com sucesso!${reset}"
+    
+    # Confirmação
+    echo -e "${azul}Confirme as informações:${reset}"
+    echo ""
+    echo -e "${amarelo}REFRESH_TOKEN:${reset} $REFRESH_TOKEN"
+    echo ""
+    echo -e "${vermelho}Para cancelar a instalação digite: exit${reset}"
+    echo ""
+    read -p "As informações estão corretas? (Y/N/exit): " confirmacao
+    
+    case $confirmacao in
+        [Yy]* )
+            # Atualizar o arquivo .env com o refresh token
+            sed -i "s/GOOGLE_REFRESH_TOKEN=.*/GOOGLE_REFRESH_TOKEN=$REFRESH_TOKEN/" .env
+            echo -e "${verde}Refresh token salvo com sucesso!${reset}"
+            exec <&-  # Fecha o /dev/tty
+            return 0
+            ;;
+        [Nn]* )
+            echo -e "${amarelo}Reiniciando coleta de informações...${reset}"
+            sleep 2
+            exec <&-  # Fecha o /dev/tty antes de reiniciar
+            get_refresh_token
+            ;;
+        "exit" )
+            echo -e "${vermelho}Instalação cancelada pelo usuário${reset}"
+            exit 1
+            ;;
+        * )
+            echo -e "${vermelho}Opção inválida${reset}"
+            echo -e "${amarelo}Pressione ENTER para continuar...${reset}"
+            read -p "> " resposta
+            if [ "$resposta" = "exit" ]; then
+                echo -e "${vermelho}Instalação cancelada pelo usuário${reset}"
+                exit 1
+            fi
+            exec <&-  # Fecha o /dev/tty antes de reiniciar
+            get_refresh_token
+            ;;
+    esac
 }
 
 ## Função para criar arquivo index.js
@@ -677,6 +722,10 @@ main() {
     install_dependencies
     setup_env
     create_refresh_token_script
+    
+    echo -e "${azul}Executando script de obtenção do refresh token...${reset}"
+    node getRefreshToken.js
+    
     get_refresh_token
     create_index_js
 
