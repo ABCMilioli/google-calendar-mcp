@@ -135,6 +135,14 @@ install_dependencies() {
     echo -e "${azul}Passo 4 - Acessando diretório do projeto...${reset}"
     cd google-calendar
 
+    # Criar volume Docker para o MCP Calendar
+    echo -e "${azul}Criando volume Docker para o MCP Calendar...${reset}"
+    docker volume create google-calendar-mcp
+    
+    # Ajustar permissões do diretório
+    echo -e "${azul}Ajustando permissões do diretório...${reset}"
+    sudo chown -R 1000:1000 /opt/google-calendar
+
     # Passo 5 - Configurar Node.js
     echo -e "${azul}Passo 5 - Configurando Node.js...${reset}"
     curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
