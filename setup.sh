@@ -28,6 +28,17 @@ azul="\e[34m"
 roxo="\e[35m"
 reset="\e[0m"
 
+# Coletar credenciais do Google no início
+echo -e "${azul}Por favor, insira suas credenciais do Google:${reset}"
+read -p "GOOGLE_CLIENT_ID: " GOOGLE_CLIENT_ID
+read -p "GOOGLE_CLIENT_SECRET: " GOOGLE_CLIENT_SECRET
+
+# Verificar se as credenciais foram preenchidas
+if [ -z "$GOOGLE_CLIENT_ID" ] || [ -z "$GOOGLE_CLIENT_SECRET" ]; then
+    echo -e "${vermelho}Erro: As credenciais do Google não podem estar vazias.${reset}"
+    exit 1
+fi
+
 ## Função para verificar se é root
 check_root() {
     if [ "$EUID" -ne 0 ]; then 
@@ -133,8 +144,8 @@ install_project_dependencies() {
 create_env_file() {
     echo -e "${azul}Criando arquivo .env...${reset}"
     cat > .env << EOL
-GOOGLE_CLIENT_ID=
-GOOGLE_CLIENT_SECRET=
+GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID
+GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET
 GOOGLE_REDIRECT_URI=urn:ietf:wg:oauth:2.0:oob
 GOOGLE_REFRESH_TOKEN=
 EOL
@@ -646,27 +657,6 @@ EOL
 
 ## Função para coletar credenciais do Google
 collect_google_credentials() {
-    echo -e "${azul}Por favor, insira suas credenciais do Google:${reset}"
-    read -p "GOOGLE_CLIENT_ID: " client_id
-    read -p "GOOGLE_CLIENT_SECRET: " client_secret
-    
-    # Criar arquivo .env com as credenciais
-    cat > .env << EOL
-GOOGLE_CLIENT_ID=$client_id
-GOOGLE_CLIENT_SECRET=$client_secret
-GOOGLE_REDIRECT_URI=urn:ietf:wg:oauth:2.0:oob
-GOOGLE_REFRESH_TOKEN=
-EOL
-    
-    # Verificar se as credenciais foram preenchidas
-    if [ -z "$client_id" ] || [ -z "$client_secret" ]; then
-        echo -e "${vermelho}Erro: As credenciais do Google não podem estar vazias.${reset}"
-        exit 1
-    fi
-    
-    echo -e "${verde}Credenciais salvas com sucesso!${reset}"
-    
-    # Gerar URL de autenticação
     echo -e "${azul}Gerando URL de autenticação...${reset}"
     node getRefreshToken.js
 }
