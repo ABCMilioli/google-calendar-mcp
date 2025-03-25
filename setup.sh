@@ -258,7 +258,7 @@ get_refresh_token() {
     case $confirmacao in
         [Yy]* )
             # Atualizar o arquivo .env com o refresh token
-            sed -i "s/GOOGLE_REFRESH_TOKEN=.*/GOOGLE_REFRESH_TOKEN=$REFRESH_TOKEN/" .env
+            sed -i "s|GOOGLE_REFRESH_TOKEN=.*|GOOGLE_REFRESH_TOKEN=$REFRESH_TOKEN|" .env
             echo -e "${verde}Refresh token salvo com sucesso!${reset}"
             exec <&-  # Fecha o /dev/tty
             return 0
