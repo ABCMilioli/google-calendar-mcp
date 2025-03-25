@@ -82,23 +82,6 @@ install_dependencies() {
     # Instalar TypeScript globalmente
     echo -e "${azul}Instalando TypeScript...${reset}"
     npm install -g typescript
-    
-    # Instalar dependências globais necessárias
-    echo -e "${azul}Instalando dependências globais...${reset}"
-    npm install -g node-gyp
-    npm install -g string-width
-    npm install -g strip-ansi
-    npm install -g tar
-    npm install -g which
-    npm install -g agent-base
-    npm install -g archy
-    npm install -g cacache
-    npm install -g chalk
-    npm install -g cli-table3
-    npm install -g columnify
-    npm install -g cssesc
-    npm install -g debug
-    npm install -g emoji-regex
 }
 
 ## Função para clonar o repositório
@@ -118,6 +101,12 @@ clone_repository() {
     # Criar diretório /opt se não existir
     if [ ! -d "/opt" ]; then
         mkdir -p /opt
+    fi
+    
+    # Remover diretório existente se houver
+    if [ -d "/opt/google-calendar-mcp" ]; then
+        echo -e "${amarelo}Removendo instalação anterior...${reset}"
+        rm -rf /opt/google-calendar-mcp
     fi
     
     # Clonar o repositório
