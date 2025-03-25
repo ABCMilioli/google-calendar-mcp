@@ -41,62 +41,60 @@ detect_os() {
 
 ## Função para coletar informações do Google Calendar
 get_google_credentials() {
-    while true; do
-        echo -e "${azul}Configuração do Google Calendar${reset}"
-        echo ""
-        echo -e "\e[97mPasso${amarelo} 1/2${reset}"
-        echo -e "${amarelo}Digite o GOOGLE_CLIENT_ID${reset}"
-        echo -e "${vermelho}Para cancelar a instalação digite: exit${reset}"
-        echo ""
-        read -p "GOOGLE_CLIENT_ID: " GOOGLE_CLIENT_ID
-        if [ "$GOOGLE_CLIENT_ID" = "exit" ]; then
+    echo -e "${azul}Configuração do Google Calendar${reset}"
+    echo ""
+    echo -e "\e[97mPasso${amarelo} 1/2${reset}"
+    echo -e "${amarelo}Digite o GOOGLE_CLIENT_ID${reset}"
+    echo -e "${vermelho}Para cancelar a instalação digite: exit${reset}"
+    echo ""
+    read -p "GOOGLE_CLIENT_ID: " GOOGLE_CLIENT_ID
+    if [ "$GOOGLE_CLIENT_ID" = "exit" ]; then
+        echo -e "${vermelho}Instalação cancelada pelo usuário${reset}"
+        exit 1
+    fi
+
+    echo -e "${azul}Configuração do Google Calendar${reset}"
+    echo ""
+    echo -e "\e[97mPasso${amarelo} 2/2${reset}"
+    echo -e "${amarelo}Digite o GOOGLE_CLIENT_SECRET${reset}"
+    echo -e "${vermelho}Para cancelar a instalação digite: exit${reset}"
+    echo ""
+    read -p "GOOGLE_CLIENT_SECRET: " GOOGLE_CLIENT_SECRET
+    if [ "$GOOGLE_CLIENT_SECRET" = "exit" ]; then
+        echo -e "${vermelho}Instalação cancelada pelo usuário${reset}"
+        exit 1
+    fi
+
+    # Confirmação
+    echo -e "${azul}Confirme as informações:${reset}"
+    echo ""
+    echo -e "${amarelo}GOOGLE_CLIENT_ID:${reset} $GOOGLE_CLIENT_ID"
+    echo -e "${amarelo}GOOGLE_CLIENT_SECRET:${reset} $GOOGLE_CLIENT_SECRET"
+    echo ""
+    echo -e "${vermelho}Para cancelar a instalação digite: exit${reset}"
+    echo ""
+    read -p "As informações estão corretas? (Y/N/exit): " confirmacao
+
+    case $confirmacao in
+        [Yy]* )
+            return 0
+            ;;
+        [Nn]* )
+            echo -e "${amarelo}Reiniciando coleta de informações...${reset}"
+            sleep 2
+            get_google_credentials
+            ;;
+        "exit" )
             echo -e "${vermelho}Instalação cancelada pelo usuário${reset}"
             exit 1
-        fi
-
-        echo -e "${azul}Configuração do Google Calendar${reset}"
-        echo ""
-        echo -e "\e[97mPasso${amarelo} 2/2${reset}"
-        echo -e "${amarelo}Digite o GOOGLE_CLIENT_SECRET${reset}"
-        echo -e "${vermelho}Para cancelar a instalação digite: exit${reset}"
-        echo ""
-        read -p "GOOGLE_CLIENT_SECRET: " GOOGLE_CLIENT_SECRET
-        if [ "$GOOGLE_CLIENT_SECRET" = "exit" ]; then
-            echo -e "${vermelho}Instalação cancelada pelo usuário${reset}"
-            exit 1
-        fi
-
-        # Confirmação
-        echo -e "${azul}Confirme as informações:${reset}"
-        echo ""
-        echo -e "${amarelo}GOOGLE_CLIENT_ID:${reset} $GOOGLE_CLIENT_ID"
-        echo -e "${amarelo}GOOGLE_CLIENT_SECRET:${reset} $GOOGLE_CLIENT_SECRET"
-        echo ""
-        echo -e "${vermelho}Para cancelar a instalação digite: exit${reset}"
-        echo ""
-        read -p "As informações estão corretas? (Y/N/exit): " confirmacao
-
-        case $confirmacao in
-            [Yy]* )
-                return 0
-                ;;
-            [Nn]* )
-                echo -e "${amarelo}Reiniciando coleta de informações...${reset}"
-                sleep 2
-                continue
-                ;;
-            "exit" )
-                echo -e "${vermelho}Instalação cancelada pelo usuário${reset}"
-                exit 1
-                ;;
-            * )
-                echo -e "${vermelho}Opção inválida${reset}"
-                echo -e "${amarelo}Pressione ENTER para continuar...${reset}"
-                read
-                continue
-                ;;
-        esac
-    done
+            ;;
+        * )
+            echo -e "${vermelho}Opção inválida${reset}"
+            echo -e "${amarelo}Pressione ENTER para continuar...${reset}"
+            read
+            get_google_credentials
+            ;;
+    esac
 }
 
 ## Função para instalar dependências
