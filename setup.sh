@@ -86,34 +86,19 @@ install_dependencies() {
     # Instalar dependências globais necessárias
     echo -e "${azul}Instalando dependências globais...${reset}"
     npm install -g node-gyp
-    npm install -g node-http-proxy-agent
-    npm install -g node-https-proxy-agent
-    npm install -g node-mkdirp
-    npm install -g node-ms
-    npm install -g node-nopt
-    npm install -g node-normalize-package-data
-    npm install -g node-npm-bundled
-    npm install -g node-npm-normalize-package-bin
-    npm install -g node-npm-package-arg
-    npm install -g node-npmlog
-    npm install -g node-postcss-selector-parser
-    npm install -g node-read-package-json
-    npm install -g node-rimraf
-    npm install -g node-semver
-    npm install -g node-string-width
-    npm install -g node-strip-ansi
-    npm install -g node-tar
-    npm install -g node-validate-npm-package-name
-    npm install -g node-which
-    npm install -g node-agent-base
-    npm install -g node-archy
-    npm install -g node-cacache
-    npm install -g node-chalk
-    npm install -g node-cli-table3
-    npm install -g node-columnify
-    npm install -g node-cssesc
-    npm install -g node-debug
-    npm install -g node-emoji-regex
+    npm install -g string-width
+    npm install -g strip-ansi
+    npm install -g tar
+    npm install -g which
+    npm install -g agent-base
+    npm install -g archy
+    npm install -g cacache
+    npm install -g chalk
+    npm install -g cli-table3
+    npm install -g columnify
+    npm install -g cssesc
+    npm install -g debug
+    npm install -g emoji-regex
 }
 
 ## Função para clonar o repositório
