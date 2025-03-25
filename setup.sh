@@ -649,8 +649,18 @@ collect_google_credentials() {
     read -p "GOOGLE_CLIENT_SECRET: " client_secret
     
     # Atualizar o arquivo .env com as credenciais
-    sed -i "s/GOOGLE_CLIENT_ID=.*/GOOGLE_CLIENT_ID=$client_id/" .env
-    sed -i "s/GOOGLE_CLIENT_SECRET=.*/GOOGLE_CLIENT_SECRET=$client_secret/" .env
+    echo "GOOGLE_CLIENT_ID=$client_id" > .env
+    echo "GOOGLE_CLIENT_SECRET=$client_secret" >> .env
+    echo "GOOGLE_REDIRECT_URI=urn:ietf:wg:oauth:2.0:oob" >> .env
+    echo "GOOGLE_REFRESH_TOKEN=" >> .env
+    
+    # Verificar se as credenciais foram salvas
+    if [ ! -s .env ]; then
+        echo -e "${vermelho}Erro ao salvar as credenciais no arquivo .env${reset}"
+        exit 1
+    fi
+    
+    echo -e "${verde}Credenciais salvas com sucesso!${reset}"
 }
 
 ## Função para gerar refresh token
