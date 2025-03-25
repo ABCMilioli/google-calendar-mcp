@@ -183,42 +183,34 @@ const oauth2Client = new google.auth.OAuth2(
   REDIRECT_URI
 );
 
-const authUrl = oauth2Client.generateAuthUrl({
-  access_type: 'offline',
-  prompt: 'consent',
-  scope: SCOPES
-});
-
-console.clear();
-console.log('Abra a seguinte URL no navegador e siga o processo de autorização:\n');
-console.log(authUrl);
-console.log('\nApós autorizar, cole o código abaixo:\n');
-
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout
-});
-
-rl.question('Código de autorização: ', async (code) => {
-  try {
-    rl.close();
-    const { tokens } = await oauth2Client.getToken(code);
-    console.log('\nTokens obtidos com sucesso!\n');
-
+// Se um código de autorização foi fornecido como argumento
+if (process.argv[2]) {
+  const code = process.argv[2];
+  oauth2Client.getToken(code).then(({ tokens }) => {
     if (tokens.refresh_token) {
-      console.log('Seu novo REFRESH TOKEN é:\n');
       console.log(tokens.refresh_token);
-      console.log('\nSalve este token no seu .env como GOOGLE_REFRESH_TOKEN.');
       process.exit(0);
     } else {
-      console.warn('Nenhum refresh_token foi retornado. Use prompt: "consent" e access_type: "offline".');
+      console.error('Nenhum refresh_token foi retornado.');
       process.exit(1);
     }
-  } catch (error) {
-    console.error('Erro ao trocar o código por tokens:\n', error.response?.data || error.message || error);
+  }).catch(error => {
+    console.error('Erro ao trocar o código por tokens:', error);
     process.exit(1);
-  }
-});
+  });
+} else {
+  // Modo interativo - gerar URL de autorização
+  const authUrl = oauth2Client.generateAuthUrl({
+    access_type: 'offline',
+    prompt: 'consent',
+    scope: SCOPES
+  });
+
+  console.clear();
+  console.log('Abra a seguinte URL no navegador e siga o processo de autorização:\n');
+  console.log(authUrl);
+  console.log('\nApós autorizar, cole o código no prompt do instalador.\n');
+}
 EOF
 }
 
@@ -226,20 +218,32 @@ EOF
 get_refresh_token() {
     exec < /dev/tty
     
-    echo -e "${azul}Configuração do Refresh Token${reset}"
+    echo -e "${azul}Configuração do Código de Autorização${reset}"
     echo ""
-    echo -e "${amarelo}Digite o refresh token obtido${reset}"
+    echo -e "${amarelo}Digite o código de autorização obtido do Google${reset}"
     echo -e "${vermelho}Para cancelar a instalação digite: exit${reset}"
     echo ""
-    read -p "> " REFRESH_TOKEN
+    read -p "> " AUTH_CODE
     
-    if [ "$REFRESH_TOKEN" = "exit" ]; then
+    if [ "$AUTH_CODE" = "exit" ]; then
         echo -e "${vermelho}Instalação cancelada pelo usuário${reset}"
         exit 1
     fi
     
+    if [ -z "$AUTH_CODE" ]; then
+        echo -e "${vermelho}Código de autorização não pode estar vazio${reset}"
+        echo -e "${amarelo}Tente novamente...${reset}"
+        sleep 2
+        get_refresh_token
+        return
+    fi
+    
+    # Executar script para obter o refresh token
+    echo -e "${azul}Processando código de autorização...${reset}"
+    REFRESH_TOKEN=$(node getRefreshToken.js "$AUTH_CODE")
+    
     if [ -z "$REFRESH_TOKEN" ]; then
-        echo -e "${vermelho}Refresh token não pode estar vazio${reset}"
+        echo -e "${vermelho}Não foi possível obter o refresh token${reset}"
         echo -e "${amarelo}Tente novamente...${reset}"
         sleep 2
         get_refresh_token
@@ -724,6 +728,7 @@ main() {
     create_refresh_token_script
     
     echo -e "${azul}Executando script de obtenção do refresh token...${reset}"
+    echo -e "${amarelo}Abra a URL fornecida no navegador e siga o processo de autorização${reset}"
     node getRefreshToken.js
     
     get_refresh_token
