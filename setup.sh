@@ -2,22 +2,14 @@
 
 # Banner
 echo -e "
-     █████╗ ██████╗  ██████╗    ██████╗  █████╗     
-    ██╔══██╗██╔══██╗██╔════╝    ██╔══██╗██╔══██╗    
-    ███████║██████╔╝██║         ██║  ██║███████║    
-    ██╔══██║██╔══██╗██║         ██║  ██║██╔══██║    
-    ██║  ██║██████╔╝╚██████╗    ██████╔╝██║  ██║    
-    ╚═╝  ╚═╝╚═════╝  ╚═════╝    ╚═════╝ ╚═╝  ╚═╝    
-                                                     
-     █████╗ ██╗   ██╗████████╗ ██████╗ ███╗   ███╗ █████╗ ██████╗ 
-    ██╔══██╗██║   ██║╚══██╔══╝██╔═══██╗████╗ ████║██╔══██╗██╔══██╗
-    ███████║██║   ██║   ██║   ██║   ██║██╔████╔██║███████║██████╔╝
-    ██╔══██║██║   ██║   ██║   ██║   ██║██║╚██╔╝██║██╔══██║██╔═══╝ 
-    ██║  ██║╚██████╔╝   ██║   ╚██████╔╝██║ ╚═╝ ██║██║  ██║██║     
-    ╚═╝  ╚═╝ ╚═════╝    ╚═╝    ╚═════╝ ╚═╝     ╚═╝╚═╝  ╚═╝╚═╝     
-                                                                                      
-              Auto Instalador do MCP Google Calendar
-                          Por Robson Milioli
+    █████╗ ██████╗  ██████╗    ███╗   ███╗ ██████╗██████╗     ██████╗     ███████╗ █████╗ ██╗     ███████╗███╗   ██╗██████╗ ██████╗ ███████╗██████╗ 
+   ██╔══██╗██╔══██╗██╔════╝    ████╗ ████║██╔════╝██╔══██╗    ██          ██╔══██╗██╔══██╗██║     ██╔════╝████╗  ██║██╔══██╗██╔══██╗██╔════╝██╔══██╗
+   ███████║██████╔╝██║         ██╔████╔██║██║     ██████╔╝    ██  ███     ██      ███████║██║     █████╗  ██╔██╗ ██║██║  ██║██████╔╝█████╗  ██████╔╝
+   ██╔══██║██╔══██╗██║         ██║╚██╔╝██║██║     ██╔         ██╔══██╗    ██╔══██╗██╔══██║██║     ██╔══╝  ██║╚██╗██║██║  ██║██╔══██╗██╔══╝  ██╔══██╗
+   ██║  ██║██████╔╝╚██████╗    ██║ ╚═╝ ██║╚██████╗██║         ██████╔╝    ██║████║██║  ██║███████╗███████╗██║ ╚████║██████╔╝██║  ██║███████╗██║  ██║
+   ╚═╝  ╚═╝╚═════╝  ╚═════╝    ╚═╝     ╚═╝ ╚═════╝╚═╝         ╚═════╝     ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚══════╝╚═╝  ╚═══╝╚═════╝ ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
+                                                                             
+              Auto Instalador do ABC MCP G-CALENDAR
 "
 
 # Cores
@@ -27,17 +19,6 @@ amarelo="\e[33m"
 azul="\e[34m"
 roxo="\e[35m"
 reset="\e[0m"
-
-# Coletar credenciais do Google no início
-echo -e "${azul}Por favor, insira suas credenciais do Google:${reset}"
-read -p "GOOGLE_CLIENT_ID: " GOOGLE_CLIENT_ID
-read -p "GOOGLE_CLIENT_SECRET: " GOOGLE_CLIENT_SECRET
-
-# Verificar se as credenciais foram preenchidas
-if [ -z "$GOOGLE_CLIENT_ID" ] || [ -z "$GOOGLE_CLIENT_SECRET" ]; then
-    echo -e "${vermelho}Erro: As credenciais do Google não podem estar vazias.${reset}"
-    exit 1
-fi
 
 ## Função para verificar se é root
 check_root() {
@@ -58,103 +39,110 @@ detect_os() {
     fi
 }
 
-## Função para atualizar o sistema
-update_system() {
-    echo -e "${azul}Atualizando o sistema...${reset}"
-    apt update
-    if [ $? -ne 0 ]; then
-        echo -e "${vermelho}Erro ao atualizar o sistema${reset}"
+## Função para coletar informações do Google Calendar
+get_google_credentials() {
+    echo -e "${azul}Configuração do Google Calendar${reset}"
+    echo ""
+    echo -e "\e[97mPasso${amarelo} 1/2${reset}"
+    echo -e "${amarelo}Digite o GOOGLE_CLIENT_ID${reset}"
+    echo -e "${vermelho}Para cancelar a instalação digite: exit${reset}"
+    echo ""
+    read -p "> " GOOGLE_CLIENT_ID
+    if [ "$GOOGLE_CLIENT_ID" = "exit" ]; then
+        echo -e "${vermelho}Instalação cancelada pelo usuário${reset}"
         exit 1
     fi
+
+    echo -e "${azul}Configuração do Google Calendar${reset}"
+    echo ""
+    echo -e "\e[97mPasso${amarelo} 2/2${reset}"
+    echo -e "${amarelo}Digite o GOOGLE_CLIENT_SECRET${reset}"
+    echo -e "${vermelho}Para cancelar a instalação digite: exit${reset}"
+    echo ""
+    read -p "> " GOOGLE_CLIENT_SECRET
+    if [ "$GOOGLE_CLIENT_SECRET" = "exit" ]; then
+        echo -e "${vermelho}Instalação cancelada pelo usuário${reset}"
+        exit 1
+    fi
+
+    # Confirmação
+    echo -e "${azul}Confirme as informações:${reset}"
+    echo ""
+    echo -e "${amarelo}GOOGLE_CLIENT_ID:${reset} $GOOGLE_CLIENT_ID"
+    echo -e "${amarelo}GOOGLE_CLIENT_SECRET:${reset} $GOOGLE_CLIENT_SECRET"
+    echo ""
+    echo -e "${vermelho}Para cancelar a instalação digite: exit${reset}"
+    echo ""
+    read -p "As informações estão corretas? (Y/N/exit): " confirmacao
+
+    case $confirmacao in
+        [Yy]* )
+            return 0
+            ;;
+        [Nn]* )
+            get_google_credentials
+            ;;
+        "exit" )
+            echo -e "${vermelho}Instalação cancelada pelo usuário${reset}"
+            exit 1
+            ;;
+        * )
+            echo -e "${vermelho}Opção inválida${reset}"
+            sleep 2
+            get_google_credentials
+            ;;
+    esac
 }
 
 ## Função para instalar dependências
 install_dependencies() {
-    echo -e "${azul}Instalando dependências...${reset}"
-    
-    # Instalar git e outras dependências básicas
-    echo -e "${azul}Instalando git e dependências básicas...${reset}"
-    apt install -y git build-essential python3
-    
-    # Instalar Node.js (que já inclui npm)
-    echo -e "${azul}Instalando Node.js...${reset}"
+    echo -e "${azul}Atualizando pacotes...${reset}"
+    apt update
+
+    echo -e "${azul}Acessando diretório /opt...${reset}"
+    cd /opt
+
+    echo -e "${azul}Clonando repositório...${reset}"
+    git clone https://github.com/v-3/google-calendar.git
+
+    echo -e "${azul}Acessando diretório do projeto...${reset}"
+    cd google-calendar
+
+    echo -e "${azul}Configurando Node.js...${reset}"
     curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
     apt install -y nodejs
-    
-    # Verificar versões instaladas
-    echo -e "${azul}Verificando versões instaladas...${reset}"
-    node --version
-    npm --version
-    
-    # Atualizar npm para a última versão
-    echo -e "${azul}Atualizando npm...${reset}"
-    npm install -g npm@latest
-    
-    # Instalar TypeScript globalmente
+
     echo -e "${azul}Instalando TypeScript...${reset}"
     npm install -g typescript
-}
+    apt install npm
 
-## Função para clonar o repositório
-clone_repository() {
-    echo -e "${azul}Clonando o repositório...${reset}"
-    
-    # Verificar se o git está instalado
-    if ! command -v git &> /dev/null; then
-        echo -e "${vermelho}Git não está instalado. Tentando instalar...${reset}"
-        apt install -y git
-        if [ $? -ne 0 ]; then
-            echo -e "${vermelho}Erro ao instalar o git${reset}"
-            exit 1
-        fi
-    fi
-    
-    # Criar diretório /opt se não existir
-    if [ ! -d "/opt" ]; then
-        mkdir -p /opt
-    fi
-    
-    # Remover diretório existente se houver
-    if [ -d "/opt/google-calendar-mcp" ]; then
-        echo -e "${amarelo}Removendo instalação anterior...${reset}"
-        rm -rf /opt/google-calendar-mcp
-    fi
-    
-    # Clonar o repositório
-    cd /opt
-    git clone https://github.com/ABCMilioli/google-calendar-mcp.git
-    if [ $? -ne 0 ]; then
-        echo -e "${vermelho}Erro ao clonar o repositório${reset}"
-        exit 1
-    fi
-    cd google-calendar-mcp
-}
-
-## Função para instalar dependências do projeto
-install_project_dependencies() {
     echo -e "${azul}Instalando dependências do projeto...${reset}"
-    npm install
-    if [ $? -ne 0 ]; then
-        echo -e "${vermelho}Erro ao instalar dependências do projeto${reset}"
-        exit 1
-    fi
+    npm install @modelcontextprotocol/sdk googleapis google-auth-library zod
+    npm install -D @types/node typescript
+    npm install dotenv
+
+    echo -e "${azul}Compilando o projeto...${reset}"
+    npm run build
+
+    echo -e "${azul}Acessando diretório build...${reset}"
+    cd build/
 }
 
-## Função para criar arquivo .env
-create_env_file() {
+## Função para configurar arquivo .env
+setup_env() {
     echo -e "${azul}Criando arquivo .env...${reset}"
-    cat > .env << EOL
+    cat > .env << EOF
 GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID
 GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET
 GOOGLE_REDIRECT_URI=urn:ietf:wg:oauth:2.0:oob
 GOOGLE_REFRESH_TOKEN=
-EOL
+EOF
 }
 
 ## Função para criar arquivo getRefreshToken.js
 create_refresh_token_script() {
     echo -e "${azul}Criando script getRefreshToken.js...${reset}"
-    cat > getRefreshToken.js << 'EOL'
+    cat > getRefreshToken.js << 'EOF'
 // getRefreshToken.js
 import readline from 'readline';
 import { google } from 'googleapis';
@@ -214,13 +202,25 @@ rl.question('Código de autorização: ', async (code) => {
     console.error('Erro ao trocar o código por tokens:\n', error.response?.data || error.message || error);
   }
 });
-EOL
+EOF
+}
+
+## Função para obter refresh token
+get_refresh_token() {
+    echo -e "${azul}Executando script de obtenção do refresh token...${reset}"
+    node getRefreshToken.js
+
+    echo -e "${amarelo}Digite o refresh token obtido:${reset}"
+    read -p "> " REFRESH_TOKEN
+
+    # Atualizar o arquivo .env com o refresh token
+    sed -i "s/GOOGLE_REFRESH_TOKEN=.*/GOOGLE_REFRESH_TOKEN=$REFRESH_TOKEN/" .env
 }
 
 ## Função para criar arquivo index.js
-create_index_file() {
+create_index_js() {
     echo -e "${azul}Criando arquivo index.js...${reset}"
-    cat > index.js << 'EOL'
+    cat > index.js << 'EOF'
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { CallToolRequestSchema, ListToolsRequestSchema, } from "@modelcontextprotocol/sdk/types.js";
@@ -244,14 +244,11 @@ const oauth2Client = new OAuth2Client({
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     redirectUri: process.env.GOOGLE_REDIRECT_URI,
 });
-
 // Set credentials from environment variables
 oauth2Client.setCredentials({
     refresh_token: process.env.GOOGLE_REFRESH_TOKEN,
 });
-
 const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
-
 // Validation schemas
 const schemas = {
     toolInputs: {
@@ -284,7 +281,6 @@ const schemas = {
         })
     }
 };
-
 // Tool definitions
 const TOOL_DEFINITIONS = [
     {
@@ -408,7 +404,6 @@ const TOOL_DEFINITIONS = [
         },
     },
 ];
-
 // Tool implementation handlers
 const toolHandlers = {
     async list_events(args) {
@@ -553,7 +548,6 @@ const toolHandlers = {
         };
     },
 };
-
 // Initialize MCP server
 const server = new Server({
     name: "google-calendar-server",
@@ -563,19 +557,16 @@ const server = new Server({
         tools: {},
     },
 });
-
 // Register tool handlers
 server.setRequestHandler(ListToolsRequestSchema, async () => {
     console.error("Tools requested by client");
     return { tools: TOOL_DEFINITIONS };
 });
-
 server.setRequestHandler(ListToolsRequestSchema, async () => {
     console.error("Tools requested by client");
     console.error("Returning tools:", JSON.stringify(TOOL_DEFINITIONS, null, 2));
     return { tools: TOOL_DEFINITIONS };
 });
-
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { name, arguments: args } = request.params;
     try {
@@ -590,7 +581,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         throw error;
     }
 });
-
 // Start the server
 async function main() {
     try {
@@ -623,7 +613,6 @@ async function main() {
         process.exit(1);
     }
 }
-
 const args = process.argv.slice(2);
 
 if (args.length > 0) {
@@ -652,46 +641,24 @@ if (args.length > 0) {
     process.exit(1);
   });
 }
-EOL
-}
-
-## Função para coletar credenciais do Google
-collect_google_credentials() {
-    echo -e "${azul}Gerando URL de autenticação...${reset}"
-    node getRefreshToken.js
-}
-
-## Função para gerar refresh token
-generate_refresh_token() {
-    echo -e "${azul}Gerando refresh token...${reset}"
-    node getRefreshToken.js
-}
-
-## Função para compilar o projeto
-build_project() {
-    echo -e "${azul}Compilando o projeto...${reset}"
-    npm run build
+EOF
 }
 
 ## Função principal
 main() {
     check_root
     detect_os
-    update_system
+    get_google_credentials
     install_dependencies
-    clone_repository
-    install_project_dependencies
-    create_env_file
+    setup_env
     create_refresh_token_script
-    create_index_file
-    collect_google_credentials
-    generate_refresh_token
-    build_project
-    
+    get_refresh_token
+    create_index_js
+
     echo -e "${verde}Instalação concluída com sucesso!${reset}"
-    echo -e "${azul}Seu arquivo .env está configurado com as seguintes credenciais:${reset}"
+    echo -e "${azul}Informações do arquivo .env:${reset}"
     cat .env
 }
 
-# Executar função principal
+# Executa a função principal
 main 
