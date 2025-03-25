@@ -1,7 +1,27 @@
-# MCP Google Calendar Auto Installer
+# ABC MCP Google Calendar
 
-Script de instalação automatizada para o MCP Google Calendar Server.
+Script de instalação automatizada para o servidor MCP do Google Calendar.
 
+## Uso
+
+Para instalar, execute:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/ABCMilioli/abc-install-master/master/install.sh | sudo bash
+```
+
+Ou baixe e execute manualmente:
+
+```bash
+# 1. Baixar o script
+curl -fsSL https://raw.githubusercontent.com/ABCMilioli/abc-install-master/master/setup.sh -o setup.sh
+
+# 2. Dar permissão de execução
+chmod +x setup.sh
+
+# 3. Executar o script
+sudo ./setup.sh
+``` 
 ## Requisitos
 
 - Sistema operacional: Debian/Ubuntu
