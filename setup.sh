@@ -65,22 +65,26 @@ install_dependencies() {
     echo -e "${azul}Instalando git e dependências básicas...${reset}"
     apt install -y git build-essential python3
     
-    # Instalar Node.js
+    # Instalar Node.js (que já inclui npm)
     echo -e "${azul}Instalando Node.js...${reset}"
     curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
     apt install -y nodejs
+    
+    # Verificar versões instaladas
+    echo -e "${azul}Verificando versões instaladas...${reset}"
+    node --version
+    npm --version
+    
+    # Atualizar npm para a última versão
+    echo -e "${azul}Atualizando npm...${reset}"
+    npm install -g npm@latest
     
     # Instalar TypeScript globalmente
     echo -e "${azul}Instalando TypeScript...${reset}"
     npm install -g typescript
     
-    # Instalar npm e suas dependências
-    echo -e "${azul}Instalando npm e dependências...${reset}"
-    apt install -y npm
-    npm install -g npm@latest
-    
-    # Instalar dependências adicionais do npm
-    echo -e "${azul}Instalando dependências adicionais do npm...${reset}"
+    # Instalar dependências globais necessárias
+    echo -e "${azul}Instalando dependências globais...${reset}"
     npm install -g node-gyp
     npm install -g node-http-proxy-agent
     npm install -g node-https-proxy-agent
@@ -101,11 +105,37 @@ install_dependencies() {
     npm install -g node-tar
     npm install -g node-validate-npm-package-name
     npm install -g node-which
+    npm install -g node-agent-base
+    npm install -g node-archy
+    npm install -g node-cacache
+    npm install -g node-chalk
+    npm install -g node-cli-table3
+    npm install -g node-columnify
+    npm install -g node-cssesc
+    npm install -g node-debug
+    npm install -g node-emoji-regex
 }
 
 ## Função para clonar o repositório
 clone_repository() {
     echo -e "${azul}Clonando o repositório...${reset}"
+    
+    # Verificar se o git está instalado
+    if ! command -v git &> /dev/null; then
+        echo -e "${vermelho}Git não está instalado. Tentando instalar...${reset}"
+        apt install -y git
+        if [ $? -ne 0 ]; then
+            echo -e "${vermelho}Erro ao instalar o git${reset}"
+            exit 1
+        fi
+    fi
+    
+    # Criar diretório /opt se não existir
+    if [ ! -d "/opt" ]; then
+        mkdir -p /opt
+    fi
+    
+    # Clonar o repositório
     cd /opt
     git clone https://github.com/ABCMilioli/google-calendar-mcp.git
     if [ $? -ne 0 ]; then
