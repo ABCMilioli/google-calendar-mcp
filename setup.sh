@@ -122,9 +122,11 @@ clone_repository() {
 ## Função para instalar dependências do projeto
 install_project_dependencies() {
     echo -e "${azul}Instalando dependências do projeto...${reset}"
-    npm install @modelcontextprotocol/sdk googleapis google-auth-library zod
-    npm install -D @types/node typescript
-    npm install dotenv
+    npm install
+    if [ $? -ne 0 ]; then
+        echo -e "${vermelho}Erro ao instalar dependências do projeto${reset}"
+        exit 1
+    fi
 }
 
 ## Função para criar arquivo .env
@@ -644,23 +646,32 @@ EOL
 
 ## Função para coletar credenciais do Google
 collect_google_credentials() {
-    echo -e "${azul}Por favor, insira suas credenciais do Google:${reset}"
-    read -p "GOOGLE_CLIENT_ID: " client_id
-    read -p "GOOGLE_CLIENT_SECRET: " client_secret
+    echo -e "${azul}Criando arquivo .env...${reset}"
+    cat > .env << EOL
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GOOGLE_REDIRECT_URI=urn:ietf:wg:oauth:2.0:oob
+GOOGLE_REFRESH_TOKEN=
+EOL
+
+    echo -e "${amarelo}Agora você precisa editar o arquivo .env com suas credenciais do Google.${reset}"
+    echo -e "${amarelo}Pressione ENTER para abrir o editor...${reset}"
+    read
     
-    # Atualizar o arquivo .env com as credenciais
-    echo "GOOGLE_CLIENT_ID=$client_id" > .env
-    echo "GOOGLE_CLIENT_SECRET=$client_secret" >> .env
-    echo "GOOGLE_REDIRECT_URI=urn:ietf:wg:oauth:2.0:oob" >> .env
-    echo "GOOGLE_REFRESH_TOKEN=" >> .env
+    # Abrir o editor
+    vi .env
     
-    # Verificar se as credenciais foram salvas
-    if [ ! -s .env ]; then
-        echo -e "${vermelho}Erro ao salvar as credenciais no arquivo .env${reset}"
+    # Verificar se as credenciais foram preenchidas
+    if ! grep -q "GOOGLE_CLIENT_ID=." .env || ! grep -q "GOOGLE_CLIENT_SECRET=." .env; then
+        echo -e "${vermelho}Erro: As credenciais do Google não foram preenchidas corretamente.${reset}"
         exit 1
     fi
     
     echo -e "${verde}Credenciais salvas com sucesso!${reset}"
+    
+    # Gerar URL de autenticação
+    echo -e "${azul}Gerando URL de autenticação...${reset}"
+    node getRefreshToken.js
 }
 
 ## Função para gerar refresh token
