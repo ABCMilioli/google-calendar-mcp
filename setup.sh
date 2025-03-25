@@ -87,6 +87,7 @@ get_google_credentials() {
         [Nn]* )
             echo -e "${amarelo}Reiniciando coleta de informações...${reset}"
             sleep 2
+            exec <&-  # Fecha o /dev/tty antes de reiniciar
             get_google_credentials
             ;;
         "exit" )
@@ -96,7 +97,12 @@ get_google_credentials() {
         * )
             echo -e "${vermelho}Opção inválida${reset}"
             echo -e "${amarelo}Pressione ENTER para continuar...${reset}"
-            read
+            read -p "> " resposta
+            if [ "$resposta" = "exit" ]; then
+                echo -e "${vermelho}Instalação cancelada pelo usuário${reset}"
+                exit 1
+            fi
+            exec <&-  # Fecha o /dev/tty antes de reiniciar
             get_google_credentials
             ;;
     esac
