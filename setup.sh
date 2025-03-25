@@ -646,24 +646,21 @@ EOL
 
 ## Função para coletar credenciais do Google
 collect_google_credentials() {
-    echo -e "${azul}Criando arquivo .env...${reset}"
+    echo -e "${azul}Por favor, insira suas credenciais do Google:${reset}"
+    read -p "GOOGLE_CLIENT_ID: " client_id
+    read -p "GOOGLE_CLIENT_SECRET: " client_secret
+    
+    # Criar arquivo .env com as credenciais
     cat > .env << EOL
-GOOGLE_CLIENT_ID=
-GOOGLE_CLIENT_SECRET=
+GOOGLE_CLIENT_ID=$client_id
+GOOGLE_CLIENT_SECRET=$client_secret
 GOOGLE_REDIRECT_URI=urn:ietf:wg:oauth:2.0:oob
 GOOGLE_REFRESH_TOKEN=
 EOL
-
-    echo -e "${amarelo}Agora você precisa editar o arquivo .env com suas credenciais do Google.${reset}"
-    echo -e "${amarelo}Pressione ENTER para abrir o editor...${reset}"
-    read
-    
-    # Abrir o editor
-    vi .env
     
     # Verificar se as credenciais foram preenchidas
-    if ! grep -q "GOOGLE_CLIENT_ID=." .env || ! grep -q "GOOGLE_CLIENT_SECRET=." .env; then
-        echo -e "${vermelho}Erro: As credenciais do Google não foram preenchidas corretamente.${reset}"
+    if [ -z "$client_id" ] || [ -z "$client_secret" ]; then
+        echo -e "${vermelho}Erro: As credenciais do Google não podem estar vazias.${reset}"
         exit 1
     fi
     
