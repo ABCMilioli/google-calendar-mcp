@@ -1,8 +1,11 @@
+
 #!/bin/bash
 
-# Download do script
-curl -fsSL https://raw.githubusercontent.com/ABCMilioli/google-calendar-mcp/master/setup.sh -o setup.sh
+# Download do script de instalação
+curl -fsSL https://raw.githubusercontent.com/ABCMilioli/google-calendar-mcp/main/setup.sh -o setup.sh
+
+# Dar permissão de execução
 chmod +x setup.sh
 
-# Executa o script
-./setup.sh 
+# Executar o script
+sudo ./setup.sh 
