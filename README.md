@@ -7,18 +7,14 @@ Script de instalação automatizada para o servidor MCP do Google Calendar.
 Para instalar, execute:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/ABCMilioli/google-calendar-mcp/master/setup.sh
-```
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/ABCMilioli/abc-install-master/master/install.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/ABCMilioli/google-calendar-mcp/main/install.sh | sudo bash
 ```
 
 Ou baixe e execute manualmente:
 
 ```bash
 # 1. Baixar o script
-curl -fsSL https://raw.githubusercontent.com/ABCMilioli/abc-install-master/master/setup.sh -o setup.sh
+curl -fsSL https://raw.githubusercontent.com/ABCMilioli/google-calendar-mcp/main/setup.sh -o setup.sh
 
 # 2. Dar permissão de execução
 chmod +x setup.sh
