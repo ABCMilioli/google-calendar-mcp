@@ -180,7 +180,7 @@ install_dependencies() {
     # Configurar permissões do diretório
     echo -e "${azul}Configurando permissões do diretório...${reset}"
     sudo chown -R 1000:1000 /opt/google-calendar
-    sudo chmod -R 755 /opt/google-calendar
+    sudo chmod -R 777 /opt/google-calendar
 
     # Criar volume Docker para o MCP Calendar
     echo -e "${azul}Criando volume Docker para o MCP Calendar...${reset}"
@@ -192,6 +192,7 @@ install_dependencies() {
     # Ajustar permissões do diretório
     echo -e "${azul}Ajustando permissões do diretório...${reset}"
     sudo chown -R 1000:1000 /opt/google-calendar
+    sudo chmod -R 777 /opt/google-calendar
 
     # Passo 6 - Configurar Node.js
     echo -e "${azul}Passo 6 - Configurando Node.js...${reset}"
@@ -228,6 +229,16 @@ install_dependencies() {
     # Passo 13 - Acessar diretório build
     echo -e "${azul}Passo 13 - Acessando diretório build...${reset}"
     cd build/
+
+    # Configurar permissões do diretório build
+    echo -e "${azul}Configurando permissões do diretório build...${reset}"
+    sudo chown -R 1000:1000 /opt/google-calendar/build
+    sudo chmod -R 777 /opt/google-calendar/build
+
+    # Configurar permissões do arquivo .env
+    echo -e "${azul}Configurando permissões do arquivo .env...${reset}"
+    sudo chown 1000:1000 /opt/google-calendar/build/.env
+    sudo chmod 666 /opt/google-calendar/build/.env
 }
 
 ## Função para configurar arquivo .env
