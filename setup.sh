@@ -2,14 +2,14 @@
 
 # Banner
 echo -e "
-    █████╗ ██████╗  ██████╗    ███╗   ███╗ ██████╗██████╗     
-   ██╔══██╗██╔══██╗██╔════╝    ████╗ ████║██╔════╝██╔══██╗    
-   ███████║██████╔╝██║         ██╔████╔██║██║     ██████╔╝   
-   ██╔══██║██╔══██╗██║         ██║╚██╔╝██║██║     ██╔         
-   ██║  ██║██████╔╝╚██████╗    ██║ ╚═╝ ██║╚██████╗██║        
-   ╚═╝  ╚═╝╚═════╝  ╚═════╝    ╚═╝     ╚═╝ ╚═════╝╚═╝         
+██████╗ ██████╗  ██████╗    ███╗   ███╗ ██████╗██████╗ 
+██╔══██╗██╔══██╗██╔════╝    ████╗ ████║██╔════╝██╔══██╗
+██████╔╝██████╔╝██║         ██╔████╔██║██║     ██████╔╝
+██╔══██╗██╔══██╗██║         ██║╚██╔╝██║██║     ██╔══██╗
+██║  ██║██████╔╝╚██████╗    ██║ ╚═╝ ██║╚██████╗██║  ██║
+╚═╝  ╚═╝╚═════╝  ╚═════╝    ╚═╝     ╚═╝ ╚═════╝╚═╝  ╚═╝
                                                                              
-              Auto Instalador do ABC MCP G-CALENDAR
+              Auto Instalador do ABC MCP
 "
 
 # Cores
@@ -125,17 +125,43 @@ install_dependencies() {
 
     # Passo 2 - Acessar diretório /opt
     echo -e "${azul}Passo 2 - Acessando diretório /opt...${reset}"
+    if [ ! -d "/opt" ]; then
+        echo -e "${vermelho}Diretório /opt não existe!${reset}"
+        exit 1
+    fi
+
     cd /opt
+    if [ $? -ne 0 ]; then
+        echo -e "${vermelho}Erro ao acessar o diretório /opt${reset}"
+        exit 1
+    fi
+
+    echo -e "${verde}Diretório atual: $(pwd)${reset}"
 
     # Passo 3 - Clonar repositório
     echo -e "${azul}Passo 3 - Clonando repositório...${reset}"
     if [ ! -d "/opt/google-calendar" ]; then
+        echo -e "${amarelo}Tentando clonar o repositório...${reset}"
         git clone https://github.com/v-3/google-calendar.git
+        if [ $? -ne 0 ]; then
+            echo -e "${vermelho}Erro ao clonar o repositório${reset}"
+            exit 1
+        fi
+        echo -e "${verde}Repositório clonado com sucesso!${reset}"
     else
         echo -e "${amarelo}Diretório já existe, atualizando...${reset}"
         cd google-calendar
         git pull
         cd ..
+    fi
+
+    # Verificar se o diretório foi criado pelo git clone
+    if [ -d "/opt/google-calendar" ]; then
+        echo -e "${verde}Diretório /opt/google-calendar criado com sucesso!${reset}"
+        ls -la /opt/google-calendar
+    else
+        echo -e "${vermelho}Erro: Diretório /opt/google-calendar não foi criado pelo git clone${reset}"
+        exit 1
     fi
 
     # Passo 4 - Acessar diretório do projeto
@@ -346,122 +372,432 @@ get_refresh_token() {
 
 ## Função para criar o arquivo index.js
 create_index_js() {
-    echo -e "${azul}Criando arquivo index.js...${reset}"
+    echo -e "${azul}Removendo index.js existente...${reset}"
+    rm -f index.js
+
+    echo -e "${azul}Criando novo arquivo index.js...${reset}"
     cat > index.js << 'EOF'
-import { MCPServer } from "@modelcontextprotocol/sdk";
-import { google } from "googleapis";
-import { OAuth2Client } from "google-auth-library";
+import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { CallToolRequestSchema, ListToolsRequestSchema, } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
-import dotenv from "dotenv";
+import { google } from 'googleapis';
+import { OAuth2Client } from 'google-auth-library';
+import dotenv from 'dotenv';
 
 dotenv.config();
 
-const {
-  GOOGLE_CLIENT_ID,
-  GOOGLE_CLIENT_SECRET,
-  GOOGLE_REFRESH_TOKEN,
-} = process.env;
 
-if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET || !GOOGLE_REFRESH_TOKEN) {
-  console.error("Missing required environment variables");
-  process.exit(1);
-}
+// Initialize Google Calendar client
+console.error(`Iniciando Oauth2Cliente...`);
+console.error('São essas as variaveis definidas...');
+console.error('GOOGLE_CLIENT_ID:', process.env.GOOGLE_CLIENT_ID || '[NÃO DEFINIDA]');
+console.error('GOOGLE_CLIENT_SECRET:', process.env.GOOGLE_CLIENT_SECRET || '[NÃO DEFINIDA]');
+console.error('GOOGLE_REDIRECT_URI:', process.env.GOOGLE_REDIRECT_URI || '[NÃO DEFINIDA]');
+console.error('GOOGLE_REFRESH_TOKEN:', process.env.GOOGLE_REFRESH_TOKEN || '[NÃO DEFINIDA]');
 
-const oauth2Client = new OAuth2Client(
-  GOOGLE_CLIENT_ID,
-  GOOGLE_CLIENT_SECRET,
-  "urn:ietf:wg:oauth:2.0:oob"
-);
-
+const oauth2Client = new OAuth2Client({
+    clientId: process.env.GOOGLE_CLIENT_ID,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  redirectUri: process.env.GOOGLE_REDIRECT_URI,
+});
+// Set credentials from environment variables
 oauth2Client.setCredentials({
-  refresh_token: GOOGLE_REFRESH_TOKEN,
+    refresh_token: process.env.GOOGLE_REFRESH_TOKEN,
 });
-
-const calendar = google.calendar({ version: "v3", auth: oauth2Client });
-
-// Definição dos schemas
-const eventSchema = z.object({
-  summary: z.string(),
-  description: z.string().optional(),
-  start: z.object({
-    dateTime: z.string(),
-    timeZone: z.string(),
-  }),
-  end: z.object({
-    dateTime: z.string(),
-    timeZone: z.string(),
-  }),
-});
-
-const toolDefinitions = [
-  {
-    name: "create_event",
-    description: "Create a new event in Google Calendar",
-    parameters: eventSchema,
-  },
-  {
-    name: "list_events",
-    description: "List events from Google Calendar",
-    parameters: z.object({
-      maxResults: z.number().optional(),
-      timeMin: z.string().optional(),
-      timeMax: z.string().optional(),
-    }),
-  },
-];
-
-// Inicialização do servidor MCP
-const server = new MCPServer({
-  tools: toolDefinitions,
-  async executeOperation({ name, parameters }) {
-    try {
-      switch (name) {
-        case "create_event":
-          const event = await calendar.events.insert({
-            calendarId: "primary",
-            requestBody: parameters,
-          });
-          return event.data;
-
-        case "list_events":
-          const events = await calendar.events.list({
-            calendarId: "primary",
-            ...parameters,
-          });
-          return events.data.items;
-
-        default:
-          throw new Error(`Unknown operation: ${name}`);
-      }
-    } catch (error) {
-      console.error("Error executing operation:", error);
-      throw error;
+const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
+// Validation schemas
+const schemas = {
+    toolInputs: {
+        listEvents: z.object({
+            timeMin: z.string().optional(),
+            timeMax: z.string().optional(),
+            maxResults: z.number().optional(),
+        }),
+        createEvent: z.object({
+            summary: z.string(),
+            description: z.string().optional(),
+            startTime: z.string(),
+            endTime: z.string(),
+            attendees: z.array(z.string()).optional(),
+        }),
+        updateEvent: z.object({
+            eventId: z.string(),
+            summary: z.string().optional(),
+            description: z.string().optional(),
+            startTime: z.string().optional(),
+            endTime: z.string().optional(),
+        }),
+        deleteEvent: z.object({
+            eventId: z.string(),
+        }),
+        findFreeTime: z.object({
+            timeMin: z.string(),
+            timeMax: z.string(),
+            duration: z.number(), // duration in minutes
+        })
     }
-  },
+};
+// Tool definitions
+const TOOL_DEFINITIONS = [
+    {
+        name: "list_events",
+        description: "List calendar events within a specified time range",
+        inputSchema: {
+            type: "object",
+            properties: {
+                timeMin: {
+                    type: "string",
+                    description: "Start time (ISO string)",
+                },
+                timeMax: {
+                    type: "string",
+                    description: "End time (ISO string)",
+                },
+                maxResults: {
+                    type: "number",
+                    description: "Maximum number of events to return",
+                },
+            },
+        },
+    },
+    {
+        name: "create_event",
+        description: "Create a new calendar event",
+        inputSchema: {
+            type: "object",
+            properties: {
+                summary: {
+                    type: "string",
+                    description: "Event title",
+                },
+                description: {
+                    type: "string",
+                    description: "Event description",
+                },
+                startTime: {
+                    type: "string",
+                    description: "Event start time (ISO string)",
+                },
+                endTime: {
+                    type: "string",
+                    description: "Event end time (ISO string)",
+                },
+                attendees: {
+                    type: "array",
+                    items: {
+                        type: "string",
+                    },
+                    description: "List of attendee email addresses",
+                },
+            },
+            required: ["summary", "startTime", "endTime"],
+        },
+    },
+    {
+        name: "update_event",
+        description: "Update an existing calendar event",
+        inputSchema: {
+            type: "object",
+            properties: {
+                eventId: {
+                    type: "string",
+                    description: "ID of the event to update",
+                },
+                summary: {
+                    type: "string",
+                    description: "New event title",
+                },
+                description: {
+                    type: "string",
+                    description: "New event description",
+                },
+                startTime: {
+                    type: "string",
+                    description: "New start time (ISO string)",
+                },
+                endTime: {
+                    type: "string",
+                    description: "New end time (ISO string)",
+                },
+            },
+            required: ["eventId"],
+        },
+    },
+    {
+        name: "delete_event",
+        description: "Delete a calendar event",
+        inputSchema: {
+            type: "object",
+            properties: {
+                eventId: {
+                    type: "string",
+                    description: "ID of the event to delete",
+                },
+            },
+            required: ["eventId"],
+        },
+    },
+    {
+        name: "find_free_time",
+        description: "Find available time slots in the calendar",
+        inputSchema: {
+            type: "object",
+            properties: {
+                timeMin: {
+                    type: "string",
+                    description: "Start of time range (ISO string)",
+                },
+                timeMax: {
+                    type: "string",
+                    description: "End of time range (ISO string)",
+                },
+                duration: {
+                    type: "number",
+                    description: "Desired duration in minutes",
+                },
+            },
+            required: ["timeMin", "timeMax", "duration"],
+        },
+    },
+];
+// Tool implementation handlers
+const toolHandlers = {
+    async list_events(args) {
+        const { timeMin, timeMax, maxResults = 10 } = schemas.toolInputs.listEvents.parse(args);
+        const response = await calendar.events.list({
+            calendarId: 'primary',
+            timeMin: timeMin || new Date().toISOString(),
+            timeMax,
+            maxResults,
+            singleEvents: true,
+            orderBy: 'startTime',
+        });
+        const events = response.data.items || [];
+        const formattedEvents = events.map(event => {
+            return `• ${event.summary}\n  Start: ${event.start?.dateTime || event.start?.date}\n  End: ${event.end?.dateTime || event.end?.date}\n  ID: ${event.id}`;
+        }).join('\n\n');
+        return {
+            content: [{
+                    type: "text",
+                    text: events.length ?
+                        `Found ${events.length} events:\n\n${formattedEvents}` :
+                        "No events found in the specified time range."
+                }]
+        };
+    },
+    async create_event(args) {
+        const { summary, description, startTime, endTime, attendees } = schemas.toolInputs.createEvent.parse(args);
+        const event = await calendar.events.insert({
+            calendarId: 'primary',
+            requestBody: {
+                summary,
+                description,
+                start: {
+                    dateTime: startTime,
+                    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                },
+                end: {
+                    dateTime: endTime,
+                    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                },
+                attendees: attendees?.map(email => ({ email })),
+            },
+        });
+        return {
+            content: [{
+                    type: "text",
+                    text: `Event created successfully!\nID: ${event.data.id}\nLink: ${event.data.htmlLink}`
+                }]
+        };
+    },
+    async update_event(args) {
+        const { eventId, summary, description, startTime, endTime } = schemas.toolInputs.updateEvent.parse(args);
+        // Get existing event
+        const existingEvent = await calendar.events.get({
+            calendarId: 'primary',
+            eventId,
+        });
+        // Prepare update payload
+        const updatePayload = {
+            summary: summary || existingEvent.data.summary,
+            description: description || existingEvent.data.description,
+        };
+        if (startTime) {
+            updatePayload.start = {
+                dateTime: startTime,
+                timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            };
+        }
+        if (endTime) {
+            updatePayload.end = {
+                dateTime: endTime,
+                timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            };
+        }
+        await calendar.events.update({
+            calendarId: 'primary',
+            eventId,
+            requestBody: updatePayload,
+        });
+        return {
+            content: [{
+                    type: "text",
+                    text: `Event ${eventId} updated successfully!`
+                }]
+        };
+    },
+    async delete_event(args) {
+        const { eventId } = schemas.toolInputs.deleteEvent.parse(args);
+        await calendar.events.delete({
+            calendarId: 'primary',
+            eventId,
+        });
+        return {
+            content: [{
+                    type: "text",
+                    text: `Event ${eventId} deleted successfully!`
+                }]
+        };
+    },
+    async find_free_time(args) {
+        const { timeMin, timeMax, duration } = schemas.toolInputs.findFreeTime.parse(args);
+        // Get existing events in the time range
+        const response = await calendar.events.list({
+            calendarId: 'primary',
+            timeMin,
+            timeMax,
+            singleEvents: true,
+            orderBy: 'startTime',
+        });
+        const events = response.data.items || [];
+        const freeTimes = [];
+        let currentTime = new Date(timeMin);
+        const endTime = new Date(timeMax);
+        const durationMs = duration * 60000; // Convert minutes to milliseconds
+        // Find free time slots
+        for (const event of events) {
+            const eventStart = new Date(event.start?.dateTime || event.start?.date || '');
+            // Check if there's enough time before the event
+            if (eventStart.getTime() - currentTime.getTime() >= durationMs) {
+                freeTimes.push({
+                    start: currentTime.toISOString(),
+                    end: new Date(eventStart.getTime() - 1).toISOString(),
+                });
+            }
+            currentTime = new Date(event.end?.dateTime || event.end?.date || '');
+        }
+        // Check for free time after the last event
+        if (endTime.getTime() - currentTime.getTime() >= durationMs) {
+            freeTimes.push({
+                start: currentTime.toISOString(),
+                end: endTime.toISOString(),
+            });
+        }
+        const formattedTimes = freeTimes.map(slot => `• ${new Date(slot.start).toLocaleString()} - ${new Date(slot.end).toLocaleString()}`).join('\n');
+        return {
+            content: [{
+                    type: "text",
+                    text: freeTimes.length ?
+                        `Encontrado ${freeTimes.length} nesse periodo:\n\n${formattedTimes}` :
+                        `Nao encontrou tempo disponivel ${duration}.`
+                }]
+        };
+    },
+};
+// Initialize MCP server
+const server = new Server({
+    name: "google-calendar-server",
+    version: "1.0.0",
+}, {
+    capabilities: {
+        tools: {},
+    },
 });
-
-// Tratamento de erros e keep-alive
-process.on('uncaughtException', (error) => {
-  console.error('Uncaught Exception:', error);
+// Register tool handlers
+server.setRequestHandler(ListToolsRequestSchema, async () => {
+    console.error("Tools requested by client");
+    return { tools: TOOL_DEFINITIONS };
 });
-
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+server.setRequestHandler(ListToolsRequestSchema, async () => {
+    console.error("Tools requested by client");
+    console.error("Returning tools:", JSON.stringify(TOOL_DEFINITIONS, null, 2));
+    return { tools: TOOL_DEFINITIONS };
 });
-
-// Iniciar o servidor com retry em caso de falha
-async function startServer() {
-  try {
-    await server.listen(3000);
-    console.log("MCP server is running on port 3000");
-  } catch (error) {
-    console.error("Failed to start server:", error);
-    console.log("Retrying in 5 seconds...");
-    setTimeout(startServer, 5000);
-  }
+server.setRequestHandler(CallToolRequestSchema, async (request) => {
+    const { name, arguments: args } = request.params;
+    try {
+        const handler = toolHandlers[name];
+        if (!handler) {
+            throw new Error(`Unknown tool: ${name}`);
+        }
+        return await handler(args);
+    }
+    catch (error) {
+        console.error(`Error executing tool ${name}:`, error);
+        throw error;
+    }
+});
+// Start the server
+async function main() {
+    try {
+        // Check for required environment variables
+        const requiredEnvVars = [
+            'GOOGLE_CLIENT_ID',
+            'GOOGLE_CLIENT_SECRET',
+            'GOOGLE_REDIRECT_URI',
+            'GOOGLE_REFRESH_TOKEN'
+        ];
+        const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
+        if (missingVars.length > 0) {
+            console.error(`Missing required environment variables: ${missingVars.join(', ')}`);
+            process.exit(1);
+        }
+        console.error("Starting server with env vars:", {
+            clientId: process.env.GOOGLE_CLIENT_ID?.substring(0, 5) + '...',
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET?.substring(0, 5) + '...',
+            redirectUri: process.env.GOOGLE_REDIRECT_URI,
+            hasRefreshToken: !!process.env.GOOGLE_REFRESH_TOKEN
+        });
+        const transport = new StdioServerTransport();
+        console.error("Created transport");
+        await server.connect(transport);
+        console.error("Connected to transport");
+        console.error("Google Calendar MCP Server running on stdio");
+    }
+    catch (error) {
+        console.error("Startup error:", error);
+        process.exit(1);
+    }
 }
+const args = process.argv.slice(2);
 
-startServer();
+if (args.length > 0) {
+  // Execução direta via CLI com função e argumentos
+  const funcao = args[0];
+  const input = args[1] ? JSON.parse(args[1]) : {};
+
+  if (toolHandlers[funcao]) {
+    toolHandlers[funcao](input)
+      .then((res) => {
+        console.log(JSON.stringify(res, null, 2));
+        process.exit(0);
+      })
+      .catch((err) => {
+        console.error(`Erro ao executar ${funcao}:`, err);
+        process.exit(1);
+      });
+  } else {
+    console.error(`❌ Função desconhecida: ${funcao}`);
+    process.exit(1);
+  }
+} else {
+  // Modo MCP servidor via stdio
+  main().catch((error) => {
+    console.error("Fatal error:", error);
+    process.exit(1);
+  });
+}
 EOF
 
     echo -e "${verde}Arquivo index.js criado com sucesso!${reset}"
