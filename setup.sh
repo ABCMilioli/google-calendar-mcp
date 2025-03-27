@@ -123,8 +123,17 @@ install_dependencies() {
     echo -e "${azul}Passo 1 - Atualizando pacotes...${reset}"
     sudo apt update
 
-    # Passo 2 - Acessar diretório /opt
-    echo -e "${azul}Passo 2 - Acessando diretório /opt...${reset}"
+    # Passo 2 - Instalar Git
+    echo -e "${azul}Passo 2 - Instalando Git...${reset}"
+    sudo apt install -y git
+    if [ $? -ne 0 ]; then
+        echo -e "${vermelho}Erro ao instalar o Git${reset}"
+        exit 1
+    fi
+    echo -e "${verde}Git instalado com sucesso!${reset}"
+
+    # Passo 3 - Acessar diretório /opt
+    echo -e "${azul}Passo 3 - Acessando diretório /opt...${reset}"
     if [ ! -d "/opt" ]; then
         echo -e "${vermelho}Diretório /opt não existe!${reset}"
         exit 1
@@ -138,8 +147,8 @@ install_dependencies() {
 
     echo -e "${verde}Diretório atual: $(pwd)${reset}"
 
-    # Passo 3 - Clonar repositório
-    echo -e "${azul}Passo 3 - Clonando repositório...${reset}"
+    # Passo 4 - Clonar repositório
+    echo -e "${azul}Passo 4 - Clonando repositório...${reset}"
     if [ ! -d "/opt/google-calendar" ]; then
         echo -e "${amarelo}Tentando clonar o repositório...${reset}"
         git clone https://github.com/v-3/google-calendar.git
@@ -164,8 +173,8 @@ install_dependencies() {
         exit 1
     fi
 
-    # Passo 4 - Acessar diretório do projeto
-    echo -e "${azul}Passo 4 - Acessando diretório do projeto...${reset}"
+    # Passo 5 - Acessar diretório do projeto
+    echo -e "${azul}Passo 5 - Acessando diretório do projeto...${reset}"
     cd google-calendar
 
     # Configurar permissões do diretório
@@ -184,40 +193,40 @@ install_dependencies() {
     echo -e "${azul}Ajustando permissões do diretório...${reset}"
     sudo chown -R 1000:1000 /opt/google-calendar
 
-    # Passo 5 - Configurar Node.js
-    echo -e "${azul}Passo 5 - Configurando Node.js...${reset}"
+    # Passo 6 - Configurar Node.js
+    echo -e "${azul}Passo 6 - Configurando Node.js...${reset}"
     curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
 
-    # Passo 6 - Instalar Node.js
-    echo -e "${azul}Passo 6 - Instalando Node.js...${reset}"
+    # Passo 7 - Instalar Node.js
+    echo -e "${azul}Passo 7 - Instalando Node.js...${reset}"
     sudo apt install -y nodejs
 
-    # Passo 7 - Instalar TypeScript globalmente
-    echo -e "${azul}Passo 7 - Instalando TypeScript...${reset}"
+    # Passo 8 - Instalar TypeScript globalmente
+    echo -e "${azul}Passo 8 - Instalando TypeScript...${reset}"
     sudo npm install -g typescript
 
-    # Passo 8 - Instalar npm
-    echo -e "${azul}Passo 8 - Instalando npm...${reset}"
+    # Passo 9 - Instalar npm
+    echo -e "${azul}Passo 9 - Instalando npm...${reset}"
     apt install npm
 
-    # Passo 9 - Instalar dependências do MCP
-    echo -e "${azul}Passo 9 - Instalando dependências do MCP...${reset}"
+    # Passo 10 - Instalar dependências do MCP
+    echo -e "${azul}Passo 10 - Instalando dependências do MCP...${reset}"
     npm install @modelcontextprotocol/sdk googleapis google-auth-library zod
 
-    # Passo 10 - Instalar dependências de desenvolvimento
-    echo -e "${azul}Passo 10 - Instalando dependências de desenvolvimento...${reset}"
+    # Passo 11 - Instalar dependências de desenvolvimento
+    echo -e "${azul}Passo 11 - Instalando dependências de desenvolvimento...${reset}"
     npm install -D @types/node typescript
 
     # Instalar dotenv (necessário para o .env)
     echo -e "${azul}Instalando dotenv...${reset}"
     npm install dotenv
 
-    # Passo 11 - Compilar o projeto
-    echo -e "${azul}Passo 11 - Compilando o projeto...${reset}"
+    # Passo 12 - Compilar o projeto
+    echo -e "${azul}Passo 12 - Compilando o projeto...${reset}"
     npm run build
 
-    # Passo 12 - Acessar diretório build
-    echo -e "${azul}Passo 12 - Acessando diretório build...${reset}"
+    # Passo 13 - Acessar diretório build
+    echo -e "${azul}Passo 13 - Acessando diretório build...${reset}"
     cd build/
 }
 
