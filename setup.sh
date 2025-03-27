@@ -5,10 +5,10 @@ echo -e "
 ██████╗ ██████╗  ██████╗    ███╗   ███╗ ██████╗██████╗ 
 ██╔══██╗██╔══██╗██╔════╝    ████╗ ████║██╔════╝██╔══██╗
 ██████╔╝██████╔╝██║         ██╔████╔██║██║     ██████╔╝
-██╔══██╗██╔══██╗██║         ██║╚██╔╝██║██║     ██╔══
-██║  ██║██████╔╝╚██████╗    ██║ ╚═╝ ██║╚██████╗██║  
-╚═╝  ╚═╝╚═════╝  ╚═════╝    ╚═╝     ╚═╝ ╚═════╝╚═╝    
-                                                                           
+██╔══██╗██╔══██╗██║         ██║╚██╔╝██║██║     ██╔══██╗
+██║  ██║██████╔╝╚██████╗    ██║ ╚═╝ ██║╚██████╗██║  ██║
+╚═╝  ╚═╝╚═════╝  ╚═════╝    ╚═╝     ╚═╝ ╚═════╝╚═╝  ╚═╝
+                                                                             
               Auto Instalador do ABC MCP
 "
 
@@ -435,8 +435,8 @@ const schemas = {
             maxResults: z.number().optional(),
         }),
         createEvent: z.object({
-            summary: z.string(),
-            description: z.string().optional(),
+  summary: z.string(),
+  description: z.string().optional(),
             startTime: z.string(),
             endTime: z.string(),
             attendees: z.array(z.string()).optional(),
@@ -481,8 +481,8 @@ const TOOL_DEFINITIONS = [
             },
         },
     },
-    {
-        name: "create_event",
+  {
+    name: "create_event",
         description: "Create a new calendar event",
         inputSchema: {
             type: "object",
@@ -608,7 +608,7 @@ const toolHandlers = {
     },
     async create_event(args) {
         const { summary, description, startTime, endTime, attendees } = schemas.toolInputs.createEvent.parse(args);
-        const event = await calendar.events.insert({
+          const event = await calendar.events.insert({
             calendarId: 'primary',
             requestBody: {
                 summary,
@@ -732,7 +732,7 @@ const server = new Server({
 }, {
     capabilities: {
         tools: {},
-    },
+  },
 });
 // Register tool handlers
 server.setRequestHandler(ListToolsRequestSchema, async () => {
@@ -846,4 +846,3 @@ main() {
 
 # Executa a função principal
 main 
-
