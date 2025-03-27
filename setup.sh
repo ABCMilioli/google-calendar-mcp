@@ -5,10 +5,10 @@ echo -e "
 ██████╗ ██████╗  ██████╗    ███╗   ███╗ ██████╗██████╗ 
 ██╔══██╗██╔══██╗██╔════╝    ████╗ ████║██╔════╝██╔══██╗
 ██████╔╝██████╔╝██║         ██╔████╔██║██║     ██████╔╝
-██╔══██╗██╔══██╗██║         ██║╚██╔╝██║██║     ██╔══██╗
-██║  ██║██████╔╝╚██████╗    ██║ ╚═╝ ██║╚██████╗██║  ██║
-╚═╝  ╚═╝╚═════╝  ╚═════╝    ╚═╝     ╚═╝ ╚═════╝╚═╝  ╚═╝
-                                                                             
+██╔══██╗██╔══██╗██║         ██║╚██╔╝██║██║     ██╔══
+██║  ██║██████╔╝╚██████╗    ██║ ╚═╝ ██║╚██████╗██║  
+╚═╝  ╚═╝╚═════╝  ╚═════╝    ╚═╝     ╚═╝ ╚═════╝╚═╝    
+                                                                           
               Auto Instalador do ABC MCP
 "
 
@@ -255,16 +255,6 @@ EOF
 ## Função para criar arquivo getRefreshToken.js
 create_refresh_token_script() {
     echo -e "${azul}Criando script getRefreshToken.js...${reset}"
-    
-    # Verificar se estamos no diretório correto
-    if [ ! -d "/opt/google-calendar" ]; then
-        echo -e "${vermelho}Erro: Diretório /opt/google-calendar não encontrado${reset}"
-        exit 1
-    fi
-    
-    cd /opt/google-calendar
-    
-    # Criar o arquivo getRefreshToken.js
     cat > getRefreshToken.js << 'EOF'
 // getRefreshToken.js
 import readline from 'readline';
@@ -321,18 +311,6 @@ if (process.argv[2]) {
   console.log('\nApós autorizar, cole o código no prompt do instalador.\n');
 }
 EOF
-
-    # Verificar se o arquivo foi criado
-    if [ ! -f "getRefreshToken.js" ]; then
-        echo -e "${vermelho}Erro: Não foi possível criar o arquivo getRefreshToken.js${reset}"
-        exit 1
-    fi
-    
-    # Configurar permissões do arquivo
-    chmod 755 getRefreshToken.js
-    chown 1000:1000 getRefreshToken.js
-    
-    echo -e "${verde}Arquivo getRefreshToken.js criado com sucesso!${reset}"
 }
 
 ## Função para obter refresh token
@@ -357,13 +335,6 @@ get_refresh_token() {
         sleep 2
         get_refresh_token
         return
-    fi
-
-    # Verificar se o arquivo getRefreshToken.js existe
-    if [ ! -f "getRefreshToken.js" ]; then
-        echo -e "${vermelho}Erro: Arquivo getRefreshToken.js não encontrado${reset}"
-        echo -e "${amarelo}Criando arquivo getRefreshToken.js...${reset}"
-        create_refresh_token_script
     fi
     
     # Executar script para obter o refresh token
@@ -436,14 +407,6 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-// Adicionar tratamento de erros não capturados
-process.on('uncaughtException', (error) => {
-    console.error('Uncaught Exception:', error);
-});
-
-process.on('unhandledRejection', (reason, promise) => {
-    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-});
 
 // Initialize Google Calendar client
 console.error(`Iniciando Oauth2Cliente...`);
@@ -455,17 +418,14 @@ console.error('GOOGLE_REFRESH_TOKEN:', process.env.GOOGLE_REFRESH_TOKEN || '[NÃ
 
 const oauth2Client = new OAuth2Client({
     clientId: process.env.GOOGLE_CLIENT_ID,
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    redirectUri: process.env.GOOGLE_REDIRECT_URI,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  redirectUri: process.env.GOOGLE_REDIRECT_URI,
 });
-
 // Set credentials from environment variables
 oauth2Client.setCredentials({
     refresh_token: process.env.GOOGLE_REFRESH_TOKEN,
 });
-
 const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
-
 // Validation schemas
 const schemas = {
     toolInputs: {
@@ -498,7 +458,6 @@ const schemas = {
         })
     }
 };
-
 // Tool definitions
 const TOOL_DEFINITIONS = [
     {
@@ -622,7 +581,6 @@ const TOOL_DEFINITIONS = [
         },
     },
 ];
-
 // Tool implementation handlers
 const toolHandlers = {
     async list_events(args) {
@@ -767,7 +725,6 @@ const toolHandlers = {
         };
     },
 };
-
 // Initialize MCP server
 const server = new Server({
     name: "google-calendar-server",
@@ -777,34 +734,30 @@ const server = new Server({
         tools: {},
     },
 });
-
 // Register tool handlers
 server.setRequestHandler(ListToolsRequestSchema, async () => {
     console.error("Tools requested by client");
     return { tools: TOOL_DEFINITIONS };
 });
-
+server.setRequestHandler(ListToolsRequestSchema, async () => {
+    console.error("Tools requested by client");
+    console.error("Returning tools:", JSON.stringify(TOOL_DEFINITIONS, null, 2));
+    return { tools: TOOL_DEFINITIONS };
+});
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { name, arguments: args } = request.params;
     try {
-        console.error(`Executando ferramenta: ${name}`);
-        console.error('Argumentos:', JSON.stringify(args, null, 2));
-        
         const handler = toolHandlers[name];
         if (!handler) {
             throw new Error(`Unknown tool: ${name}`);
         }
-        
-        const result = await handler(args);
-        console.error(`Resultado da ferramenta ${name}:`, JSON.stringify(result, null, 2));
-        return result;
+        return await handler(args);
     }
     catch (error) {
         console.error(`Error executing tool ${name}:`, error);
         throw error;
     }
 });
-
 // Start the server
 async function main() {
     try {
@@ -820,66 +773,50 @@ async function main() {
             console.error(`Missing required environment variables: ${missingVars.join(', ')}`);
             process.exit(1);
         }
-
         console.error("Starting server with env vars:", {
             clientId: process.env.GOOGLE_CLIENT_ID?.substring(0, 5) + '...',
             clientSecret: process.env.GOOGLE_CLIENT_SECRET?.substring(0, 5) + '...',
             redirectUri: process.env.GOOGLE_REDIRECT_URI,
             hasRefreshToken: !!process.env.GOOGLE_REFRESH_TOKEN
         });
-
         const transport = new StdioServerTransport();
         console.error("Created transport");
-        
-        // Adicionar tratamento de eventos do transport
-        transport.on('error', (error) => {
-            console.error('Transport error:', error);
-        });
-
-        transport.on('close', () => {
-            console.error('Transport closed');
-        });
-
         await server.connect(transport);
         console.error("Connected to transport");
         console.error("Google Calendar MCP Server running on stdio");
-
-        // Manter o processo vivo
-        process.stdin.resume();
     }
     catch (error) {
         console.error("Startup error:", error);
         process.exit(1);
     }
 }
-
 const args = process.argv.slice(2);
 
 if (args.length > 0) {
-    // Execução direta via CLI com função e argumentos
-    const funcao = args[0];
-    const input = args[1] ? JSON.parse(args[1]) : {};
+  // Execução direta via CLI com função e argumentos
+  const funcao = args[0];
+  const input = args[1] ? JSON.parse(args[1]) : {};
 
-    if (toolHandlers[funcao]) {
-        toolHandlers[funcao](input)
-            .then((res) => {
-                console.log(JSON.stringify(res, null, 2));
-                process.exit(0);
-            })
-            .catch((err) => {
-                console.error(`Erro ao executar ${funcao}:`, err);
-                process.exit(1);
-            });
-    } else {
-        console.error(`❌ Função desconhecida: ${funcao}`);
+  if (toolHandlers[funcao]) {
+    toolHandlers[funcao](input)
+      .then((res) => {
+        console.log(JSON.stringify(res, null, 2));
+        process.exit(0);
+      })
+      .catch((err) => {
+        console.error(`Erro ao executar ${funcao}:`, err);
         process.exit(1);
-    }
+      });
+  } else {
+    console.error(`❌ Função desconhecida: ${funcao}`);
+    process.exit(1);
+  }
 } else {
-    // Modo MCP servidor via stdio
-    main().catch((error) => {
-        console.error("Fatal error:", error);
-        process.exit(1);
-    });
+  // Modo MCP servidor via stdio
+  main().catch((error) => {
+    console.error("Fatal error:", error);
+    process.exit(1);
+  });
 }
 EOF
 
@@ -897,14 +834,6 @@ main() {
     
     echo -e "${azul}Executando script de obtenção do refresh token...${reset}"
     echo -e "${amarelo}Abra a URL fornecida no navegador e siga o processo de autorização${reset}"
-    
-    # Verificar se o arquivo getRefreshToken.js existe antes de executá-lo
-    if [ ! -f "getRefreshToken.js" ]; then
-        echo -e "${vermelho}Erro: Arquivo getRefreshToken.js não encontrado${reset}"
-        echo -e "${amarelo}Criando arquivo getRefreshToken.js...${reset}"
-        create_refresh_token_script
-    fi
-    
     node getRefreshToken.js
     
     get_refresh_token
@@ -917,3 +846,4 @@ main() {
 
 # Executa a função principal
 main 
+
