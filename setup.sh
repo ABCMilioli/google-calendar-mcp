@@ -255,6 +255,16 @@ EOF
 ## Função para criar arquivo getRefreshToken.js
 create_refresh_token_script() {
     echo -e "${azul}Criando script getRefreshToken.js...${reset}"
+    
+    # Verificar se estamos no diretório correto
+    if [ ! -d "/opt/google-calendar" ]; then
+        echo -e "${vermelho}Erro: Diretório /opt/google-calendar não encontrado${reset}"
+        exit 1
+    fi
+    
+    cd /opt/google-calendar
+    
+    # Criar o arquivo getRefreshToken.js
     cat > getRefreshToken.js << 'EOF'
 // getRefreshToken.js
 import readline from 'readline';
@@ -311,6 +321,18 @@ if (process.argv[2]) {
   console.log('\nApós autorizar, cole o código no prompt do instalador.\n');
 }
 EOF
+
+    # Verificar se o arquivo foi criado
+    if [ ! -f "getRefreshToken.js" ]; then
+        echo -e "${vermelho}Erro: Não foi possível criar o arquivo getRefreshToken.js${reset}"
+        exit 1
+    fi
+    
+    # Configurar permissões do arquivo
+    chmod 755 getRefreshToken.js
+    chown 1000:1000 getRefreshToken.js
+    
+    echo -e "${verde}Arquivo getRefreshToken.js criado com sucesso!${reset}"
 }
 
 ## Função para obter refresh token
@@ -335,6 +357,13 @@ get_refresh_token() {
         sleep 2
         get_refresh_token
         return
+    fi
+
+    # Verificar se o arquivo getRefreshToken.js existe
+    if [ ! -f "getRefreshToken.js" ]; then
+        echo -e "${vermelho}Erro: Arquivo getRefreshToken.js não encontrado${reset}"
+        echo -e "${amarelo}Criando arquivo getRefreshToken.js...${reset}"
+        create_refresh_token_script
     fi
     
     # Executar script para obter o refresh token
@@ -868,6 +897,14 @@ main() {
     
     echo -e "${azul}Executando script de obtenção do refresh token...${reset}"
     echo -e "${amarelo}Abra a URL fornecida no navegador e siga o processo de autorização${reset}"
+    
+    # Verificar se o arquivo getRefreshToken.js existe antes de executá-lo
+    if [ ! -f "getRefreshToken.js" ]; then
+        echo -e "${vermelho}Erro: Arquivo getRefreshToken.js não encontrado${reset}"
+        echo -e "${amarelo}Criando arquivo getRefreshToken.js...${reset}"
+        create_refresh_token_script
+    fi
+    
     node getRefreshToken.js
     
     get_refresh_token
